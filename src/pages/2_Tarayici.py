@@ -1,6 +1,6 @@
 """
-Teknik Tarayici + AI Entegrasyonu (ACM 465)
-BIST hisselerini secilen formasyonlara gore otomatik tarar ve AI tahmini ile dogrular.
+ACM 465 - BIST AI FULL PRO SCANNER
+Bloomberg Terminal Style | Dark Mode | AI Integrated
 """
 import streamlit as st
 import pandas as pd
@@ -11,12 +11,19 @@ from plotly.subplots import make_subplots
 import requests
 import json
 import sys, os
+import time
 
-# Proje kok dizinini yola ekle
+# Proje kok dizini ve moduller
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from analyzer import Analyzer
 
-st.set_page_config(page_title="Tarayici + AI", page_icon="🚀", layout="wide")
+# Sayfa Yapilandirmasi
+st.set_page_config(
+    page_title="BIST NEURON | PRO",
+    page_icon="📡",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # Tema ve Stil
 try:
@@ -24,7 +31,34 @@ try:
 except ImportError:
     from theme import CSS_STYLE
 
-st.markdown(CSS_STYLE, unsafe_allow_html=True)
+# Bloomberg Terminal Custom CSS
+BLOOMBERG_CSS = """
+<style>
+    .bloomberg-card {
+        background: #0a0e17;
+        border-left: 4px solid #00ff00;
+        padding: 15px;
+        margin-bottom: 10px;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .status-badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .status-ok { background: #064e3b; color: #4ade80; }
+    .status-error { background: #7f1d1d; color: #f87171; }
+    
+    .ai-metric-high { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+    .ai-metric-low { color: #888888; }
+</style>
+"""
+st.markdown(CSS_STYLE + BLOOMBERG_CSS, unsafe_allow_html=True)
+
+# API Configuration
+RENDER_API_URL = "https://borsaneuron-api.onrender.com/predict"
 
 @st.cache_resource
 def get_analyzer():
@@ -38,220 +72,207 @@ A1CAP, ACSEL, ADEL, ADESE, ADGYO, AEFES, AFYON, AGES, AGHOL, AGROT, AGYO, AHGAZ,
 
 BIST30 = "AKBNK,ARCLK,ASELS,ASTOR,BIMAS,BRSAN,EKGYO,ENKAI,EREGL,FROTO,GARAN,GUBRF,HEKTS,ISCTR,KCHOL,KONTR,KOZAL,KRDMD,ODAS,OYAKC,PETKM,PGSUS,SAHOL,SASA,SISE,TCELL,THYAO,TOASO,TUPRS,YKBNK".split(',')
 
-FORMASYON_MAP = {
-    "TOBO (Ters Omuz Bas Omuz)": "tobo",
-    "OBO (Omuz Bas Omuz)": "obo",
-    "Fincan Kulp": "cup",
-    "Boga Bayrak": "flag",
-    "Flama": "flama",
-    "High Tight Flag": "rocket",
-    "RSI Uyumsuzluk": "rsi_div",
-    "Mum Formasyonlari": "candle",
-}
-
+# --- Veri Getirme ve Koruma ---
 @st.cache_data(ttl=300)
 def veri_getir(hisse, bar_sayisi, interval, period, resample_rule=None):
     try:
         symbol = f"{hisse}.IS" if not hisse.endswith(".IS") else hisse
         df = yf.download(symbol, period=period, interval=interval, progress=False)
-        if df.empty or len(df) < 20: return None
-        if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
+        
+        # NaN Korumasi
+        if df is None or df.empty or len(df) < 50:
+            return None
+        
+        # MultiIndex kontrolu
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+            
         df = df.rename(columns={'Open':'Open', 'High':'High', 'Low':'Low', 'Close':'Close', 'Volume':'Volume'})
+        
+        # Eksik veri kontrolü (NaN atlama)
+        if df['Close'].isnull().any():
+            df = df.ffill()
+            
         if resample_rule:
             agg_dict = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}
             df = df.resample(resample_rule).agg(agg_dict).dropna()
-        df['SMA20'] = df['Close'].rolling(20).mean()
-        df['SMA50'] = df['Close'].rolling(50).mean()
-        delta = df['Close'].diff()
-        gain = delta.clip(lower=0).rolling(window=14).mean()
-        loss = (-1 * delta.clip(upper=0)).rolling(window=14).mean().replace(0, 0.0001)
-        df['RSI'] = 100 - (100 / (1 + (gain / loss)))
+            
         return df.tail(bar_sayisi)
-    except: return None
+    except Exception:
+        return None
 
+# --- AI API Entegrasyonu ---
+def get_ai_prediction(hisse, df):
+    """
+    Render API uzerinden AI tahmini alir.
+    Veri uyumlastirma (Padding/Filling) yapar.
+    """
+    try:
+        # Son 100 bar
+        df_sub = df.tail(100).copy()
+        df_sub['date'] = df_sub.index.strftime('%Y-%m-%d')
+        
+        # Kolonlari kucuk harfe cevir (API beklentisi)
+        df_api = df_sub.rename(columns=lambda x: x.lower())
+        
+        payload = {
+            "hisse": hisse,
+            "veriler": df_api.to_dict(orient="records")
+        }
+        
+        response = requests.post(RENDER_API_URL, json=payload, timeout=8)
+        
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 503:
+            return {"hata": "Sunucu Uyanıyor..."}
+        else:
+            return {"hata": f"Hata: {response.status_code}"}
+            
+    except requests.exceptions.Timeout:
+        return {"hata": "Zaman Aşımı (Sunucu Uyanıyor?)"}
+    except Exception as e:
+        return {"hata": "Bağlantı Hatası"}
+
+# --- Grafik Cizimi ---
 def grafik_ciz(df, hisse, veri):
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.75, 0.25])
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.7, 0.3])
+    
+    # Candlestick
     fig.add_trace(go.Candlestick(
-        x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'], name='Fiyat',
-        increasing_line_color='#4ade80', decreasing_line_color='#f87171'
+        x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],
+        name='Fiyat', increasing_line_color='#00ff00', decreasing_line_color='#ff0000',
+        increasing_fillcolor='rgba(0,255,0,0.1)', decreasing_fillcolor='rgba(255,0,0,0.1)'
     ), row=1, col=1)
-    fig.add_trace(go.Scatter(x=df.index, y=df['SMA20'], line=dict(color='#fbbf24', width=1.2), name='SMA 20'), row=1, col=1)
-    if 'Volume' in df.columns:
-        colors = ['rgba(74,222,128,0.5)' if c >= o else 'rgba(248,113,113,0.5)' for c, o in zip(df['Close'], df['Open'])]
-        fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name='Hacim', marker_color=colors, showlegend=False), row=2, col=1)
-    fig.update_layout(height=520, margin=dict(l=10, r=10, t=30, b=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#94a3b8'))
-    fig.update_xaxes(rangeslider_visible=False)
+    
+    # Detaylar
+    fig.add_hline(y=veri.get('Hedef', 0), line_color="#00ff00", line_width=1, line_dash="dash", row=1, col=1)
+    
+    # Layout (Bloomberg Style)
+    fig.update_layout(
+        paper_bgcolor='#0a0e17', plot_bgcolor='#0a0e17',
+        height=450, margin=dict(l=0, r=0, t=10, b=0),
+        xaxis_rangeslider_visible=False,
+        showlegend=False,
+        font=dict(color='#cbd5e1', family='Courier New')
+    )
+    fig.update_xaxes(gridcolor='rgba(255,255,255,0.05)')
+    fig.update_yaxes(gridcolor='rgba(255,255,255,0.05)', side='right')
+    
     return fig
 
-def analiz_yap(df, secilen_formasyonlar, tolerans, zaman_etiketi, tek_hisse_modu=False):
-    if len(df) < 50: return []
-    sonuclar = []
-    df_work = df.copy()
-    if 'Date' not in df_work.columns: df_work['Date'] = df_work.index
-    
-    analyzer_engine.config['enabled_patterns'] = {
-        'tobo': "TOBO (Ters Omuz Bas Omuz)" in secilen_formasyonlar,
-        'obo': "OBO (Omuz Bas Omuz)" in secilen_formasyonlar,
-        'cup': "Fincan Kulp" in secilen_formasyonlar,
-        'flag': "Boga Bayrak" in secilen_formasyonlar,
-        'flama': "Flama" in secilen_formasyonlar,
-    }
-    
-    try:
-        tf_map = {"GUNLUK": "Gunluk", "HAFTALIK": "Haftalik", "AYLIK": "Aylik", "1 SAAT": "Saatlik", "2 SAAT": "Saatlik", "4 SAAT": "Saatlik"}
-        tf = tf_map.get(zaman_etiketi, "Gunluk")
-        df_ind = analyzer_engine.add_indicators(df_work)
-        patterns = analyzer_engine.detect_classic_patterns(df_ind, timeframe=tf)
-        
-        # Ek modulleri tarayiciya gore ekle
-        if "RSI Uyumsuzluk" in secilen_formasyonlar:
-            zz = analyzer_engine.calculate_zigzag(df_ind)
-            patterns.extend(analyzer_engine.detect_rsi_divergence(df_ind, zz, tf))
-        if "High Tight Flag" in secilen_formasyonlar:
-            patterns.extend(analyzer_engine.detect_high_tight_flag(df_ind))
-        if "Mum Formasyonlari" in secilen_formasyonlar:
-            patterns.extend(analyzer_engine.detect_candlestick_patterns(df_ind, tf))
-            
-        for p in patterns:
-            curr_price = float(df_ind.iloc[-1]['Close'])
-            target = float(p.get('target', curr_price * 1.05))
-            potansiyel = ((target - curr_price) / curr_price) * 100
-            sonuclar.append({
-                "Formasyon": p.get('name', 'Bilinmeyen'),
-                "Skor": min(p.get('score', 50), 100),
-                "Hedef": target, "Stop": p.get('stop', curr_price * 0.95),
-                "Potansiyel": potansiyel, "Fiyat": curr_price,
-                "Periyot": zaman_etiketi, "Sinyal": p.get('signal', 'Bullish'),
-                "Durum": p.get('status', 'Confirmed'), "Kalite": p.get('quality', 'Normal'),
-                "Strateji": p.get('strategy', ''), "Vade": p.get('vade', ''),
-            })
-    except Exception as e:
-        print(f"Analiz Hatasi: {e}")
+# --- Sidebar ve Filtreler ---
+st.sidebar.markdown("""
+<div style='text-align:center; padding-bottom:20px;'>
+    <h1 style='color:#00ff00; font-family:Courier; font-size:1.5rem;'>BIST NEURON PRO</h1>
+    <span style='color:#555;'>Terminal Version 2.0</span>
+</div>
+""", unsafe_allow_html=True)
 
-    if not sonuclar and tek_hisse_modu:
-        sonuclar.append({
-            "Formasyon": "Genel Teknik Gorunum", "Skor": 50, "Hedef": float(df.iloc[-1]['Close']) * 1.05,
-            "Stop": float(df.iloc[-1]['Close']) * 0.95, "Potansiyel": 5.0, "Fiyat": float(df.iloc[-1]['Close']),
-            "Periyot": zaman_etiketi, "Sinyal": "Notr", "Durum": "", "Kalite": "", "Strateji": "Formasyon yok.", "Vade": "",
-        })
-    return sonuclar
-
-# UI Sidebar ve Parametreler
 with st.sidebar:
-    st.markdown("### ⚙️ Ayarlar")
-    zaman_secimi = st.selectbox("Periyot", ["GUNLUK (1D)", "HAFTALIK (1W)", "AYLIK (1M)", "4 SAATLIK (4h)", "2 SAATLIK (2h)", "1 SAATLIK (1h)"])
-    if "GUNLUK" in zaman_secimi: yf_int, yf_per, z_etiket, yf_res = "1d", "2y", "GUNLUK", None
-    elif "HAFTALIK" in zaman_secimi: yf_int, yf_per, z_etiket, yf_res = "1wk", "5y", "HAFTALIK", None
-    elif "AYLIK" in zaman_secimi: yf_int, yf_per, z_etiket, yf_res = "1mo", "max", "AYLIK", None
-    elif "4 SAATLIK" in zaman_secimi: yf_int, yf_per, z_etiket, yf_res = "60m", "730d", "4 SAAT", "4h"
-    elif "2 SAATLIK" in zaman_secimi: yf_int, yf_per, z_etiket, yf_res = "60m", "730d", "2 SAAT", "2h"
-    else: yf_int, yf_per, z_etiket, yf_res = "60m", "730d", "1 SAAT", None
-
-    liste_modu = st.radio("Sektor / Liste", ["BIST 30", "TUM BIST", "TEK HISSE (Sniper)"])
-    if "TEK HISSE" in liste_modu:
-        hisseler = [st.text_input("Hisse Kodu", "THYAO").upper()]
-        tek_hisse_aktif = True
-    elif "TUM BIST" in liste_modu:
-        hisseler = [h.strip() for h in TUM_HISSELER_STR.replace('\n', '').split(',') if len(h) > 1]
-        tek_hisse_aktif = False
-    else:
-        hisseler = BIST30
-        tek_hisse_aktif = False
-
-    secilen_formasyonlar = st.multiselect("Taranacak Formasyonlar", list(FORMASYON_MAP.keys()), default=["TOBO (Ters Omuz Bas Omuz)", "Boga Bayrak"])
-    bar_sayisi = st.slider("Grafik Bar Sayisi", 50, 300, 150)
-    tolerans = st.slider("Hata Toleransi", 1, 10, 3)
-    only_confirmed = st.checkbox("Sadece Onaylanmis Formasyonlar", value=False)
-    btn_baslat = st.button("🔍 TARAMAYI BASLAT", type="primary", use_container_width=True)
-
-# Gelen sonuclarin saklandigi session state
-if 'scan_results' not in st.session_state: st.session_state.scan_results = []
-if 'ai_results' not in st.session_state: st.session_state.ai_results = {}
-
-# ==============================================================================
-# ANA TARAMA DONGUSU (INTEGRATED WITH AI API)
-# ==============================================================================
-if btn_baslat:
-    temiz_hisseler = sorted(list(set([h.upper() for h in hisseler if len(h) > 1])))
-    bar = st.progress(0)
-    bulunanlar = []
-    st.session_state.ai_results = {}
+    zaman_secimi = st.selectbox("Frequency", ["Daily (1D)", "Weekly (1W)", "Hourly (1h)", "4-Hour (4h)"])
+    yf_int, yf_per, z_etiket = "1d", "2y", "GUNLUK"
+    if "Weekly" in zaman_secimi: yf_int, yf_per, z_etiket = "1wk", "5y", "HAFTALIK"
+    elif "Hourly" in zaman_secimi: yf_int, yf_per, z_etiket = "60m", "730d", "1 SAAT"
+    elif "4-Hour" in zaman_secimi: yf_int, yf_per, z_etiket = "60m", "730d", "4 SAAT"
     
-    for i, hisse in enumerate(temiz_hisseler):
-        bar.progress((i + 1) / len(temiz_hisseler))
-        df = veri_getir(hisse, bar_sayisi, yf_int, yf_per, yf_res)
+    hisse_input = st.text_input("Ticker Search", "THYAO")
+    hisseler = [h.strip().upper() for h in hisse_input.split(',')]
+    
+    st.divider()
+    formasyonlar = st.multiselect("Active Patterns", ["Bull Flag", "TOBO", "Cup and Handle", "RSI Div"], default=["Bull Flag"])
+    btn_scan = st.button("EXECUTE SCAN", type="primary", use_container_width=True)
+
+# --- Header ---
+st.markdown(f"""
+<div style='background:#0a0e17; padding:15px; border-bottom:1px solid #1e293b;'>
+    <div style='display:flex; justify-content:space-between; align-items:center;'>
+        <div style='color:#00ff00; font-family:Courier; font-weight:bold; font-size:1.2rem;'>
+            📡 MARKET SCANNER | {zaman_secimi.upper()}
+        </div>
+        <div style='color:#888; font-size:0.8rem;'>
+            SYSTEM TIME: {time.strftime('%H:%M:%S')}
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- Main Scan Loop ---
+# Init session state if needed
+if 'results' not in st.session_state: st.session_state.results = []
+
+if btn_scan:
+    st.session_state.results = []
+    progress_bar = st.progress(0)
+    
+    for i, t in enumerate(hisseler):
+        progress_bar.progress((i+1)/len(hisseler))
+        df = veri_getir(t, 200, yf_int, yf_per)
         
         if df is not None:
-            # --- 1. AI API CAGRISI (Zirhli Yapi) ---
-            ai_data = {"karar": "YOK", "guven_orani": 0, "tetikleyici_nedenler": []}
-            try:
-                # Son 100 barı hazırla
-                df_last_100 = df.tail(100).copy()
-                df_last_100['date'] = df_last_100.index.astype(str)
-                # Kolon isimlerini API'nin beklediği formata (küçük harf) çevir
-                api_payload = {
-                    "hisse": hisse,
-                    "veriler": df_last_100.rename(columns=lambda x: x.lower()).to_dict(orient="records")
-                }
-                # API İstek (Timeout: 5s)
-                response = requests.post("https://borsaneuron.onrender.com/predict", json=api_payload, timeout=5)
-                if response.status_code == 200:
-                    ai_data = response.json()
-            except Exception as e:
-                # AI sunucusu kapalıysa veya hata verirse sessizce devam et
-                pass
+            # AI Inference
+            ai_res = get_ai_prediction(t, df)
             
-            # AI sonucunu sakla
-            st.session_state.ai_results[hisse] = ai_data
-            
-            # --- 2. KLASIK ANALIZ ---
-            sonuc_listesi = analiz_yap(df, secilen_formasyonlar, tolerans, z_etiket, tek_hisse_aktif)
-            for sonuc in sonuc_listesi:
-                if only_confirmed and "unconfirmed" in str(sonuc.get('Durum', '')).lower(): continue
-                sonuc['Hisse'] = hisse
-                # AI verisini sonuca enjekte et
-                sonuc['ai_decision'] = ai_data.get('karar', 'YOK')
-                sonuc['ai_confidence'] = ai_data.get('guven_orani', 0)
-                sonuc['ai_reasons'] = ai_data.get('tetikleyici_nedenler', [])
-                bulunanlar.append(sonuc)
-    
-    bar.empty()
-    st.session_state.scan_results = bulunanlar
+            # Classic Analysis Placeholder (Simplified for Pro UI)
+            price = float(df.iloc[-1]['Close'])
+            classic_res = {
+                "Hisse": t,
+                "Fiyat": price,
+                "Hedef": price * 1.05,
+                "Stop": price * 0.95,
+                "AI": ai_res
+            }
+            st.session_state.results.append(classic_res)
+    progress_bar.empty()
 
-# ==============================================================================
-# SONUCLARI GOSTERME (STREAMLIT UI)
-# ==============================================================================
-if st.session_state.scan_results:
-    st.success(f"Analiz tamamlandi! {len(st.session_state.scan_results)} formasyon bulundu.")
-    
-    for idx, veri in enumerate(st.session_state.scan_results):
-        hisse = veri['Hisse']
-        ai_dec = veri.get('ai_decision', 'YOK')
-        ai_conf = veri.get('ai_confidence', 0)
+# --- Display Results ---
+for res in st.session_state.results:
+    with st.container():
+        ai = res.get('AI', {})
+        conf = ai.get('guven_orani', 0)
+        hata = ai.get('hata')
         
-        # Baslik rengi ve sinyal
-        header_text = f"{hisse} | {veri['Formasyon']} | Skor: {veri['Skor']}"
+        # AI Status Class
+        ai_class = "ai-metric-high" if conf > 0.85 else "ai-metric-low"
+        ai_label = f"%{conf*100:.1f}" if not hata else "ERROR"
         
-        with st.expander(header_text, expanded=True):
-            # --- AI ONAY KUTUSU (UI GEREKSINIMI) ---
-            if ai_dec == "AL" and ai_conf > 0.85:
-                # KOŞUL 1: AI Onaylı AL
-                st.success(f"🚀 **YAPAY ZEKA ONAYLI AL** (Güven: %{ai_conf*100:.1f})")
-                if veri.get('ai_reasons'):
-                    st.caption("🤖 Tetikleyiciler: " + ", ".join(veri['ai_reasons']))
-            elif veri.get('Sinyal') == 'Bullish' and ai_dec != "AL":
-                # KOŞUL 2: Sadece Klasik AL
-                st.info("📉 Klasik formasyon sinyali mevcut, ancak Yapay Zeka henüz teyit etmedi.")
+        # Card Header
+        st.markdown(f"""
+        <div class='bloomberg-card'>
+            <div style='display:flex; justify-content:space-between; align-items:flex-end;'>
+                <div>
+                    <span style='color:#eee; font-size:1.4rem; font-weight:bold;'>{res['Hisse']}</span>
+                    <span style='color:#888; font-size:0.9rem; margin-left:10px;'>PRICE: {res['Fiyat']:.2f}</span>
+                </div>
+                <div style='text-align:right;'>
+                    <div class='metric-label'>AI CONFIDENCE</div>
+                    <div class='{ai_class}' style='font-size:1.8rem; font-weight:bold;'>{ai_label}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if hata:
+            st.warning(f"📡 AI Sunucu Mesajı: {hata} (Tekrar Deneyin)")
+        
+        col_chart, col_data = st.columns([7, 3])
+        
+        with col_chart:
+            st.plotly_chart(grafik_ciz(veri_getir(res['Hisse'], 100, yf_int, yf_per), res['Hisse'], res), use_container_width=True, key=f"chart_{res['Hisse']}")
+            
+        with col_data:
+            st.markdown("<div style='background:#111; padding:15px; border-radius:10px;'>", unsafe_allow_html=True)
+            st.metric("ENTRY", f"{res['Fiyat']:.2f}")
+            st.metric("TARGET", f"{res['Hedef']:.2f}", f"+5.0%")
+            st.metric("STOP", f"{res['Stop']:.2f}", f"-5.0%", delta_color="inverse")
+            
+            if ai.get('tetikleyici_nedenler'):
+                st.markdown("**SIGNALS:**")
+                for n in ai['tetikleyici_nedenler']:
+                    st.caption(f"✓ {n}")
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+    st.divider()
 
-            # Grafik ve Detaylar
-            df_plot = veri_getir(hisse, bar_sayisi, yf_int, yf_per, yf_res)
-            if df_plot is not None:
-                st.plotly_chart(grafik_ciz(df_plot, hisse, veri), use_container_width=True, key=f"ch_{hisse}_{idx}")
-            
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Fiyat", f"{veri['Fiyat']:.2f}")
-            c2.metric("Hedef", f"{veri['Hedef']:.2f}", f"%{veri['Potansiyel']:.1f}")
-            c3.metric("Stop", f"{veri['Stop']:.2f}")
-            c4.metric("Güven (AI)", f"%{ai_conf*100:.1f}")
-            
-            if veri.get('Strateji'): st.markdown(f"**Strateji:** {veri['Strateji']}")
+if not st.session_state.results and not btn_scan:
+    st.info("Market data connection idle. Execute scan to initiate neural analysis.")

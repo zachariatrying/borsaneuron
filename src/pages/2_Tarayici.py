@@ -1,6 +1,6 @@
 """
-BORSANEURON | TERMINAL VERSION
-Bloomberg Inspired Professional Market Scanner
+BORSANEURON | PROFESSIONAL FINANCE TERMINAL
+Bloomberg-Style Analytics & Pattern Recognition
 """
 import streamlit as st
 import pandas as pd
@@ -13,249 +13,276 @@ import json
 import sys, os
 import time
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Proje kok dizini
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from analyzer import Analyzer
 
-# Zaman Ayari
-TR_TIMEZONE = pytz.timezone('Europe/Istanbul')
+# Zaman Ayari (Europe/Istanbul)
+TR_TZ = pytz.timezone('Europe/Istanbul')
 
-def get_tr_now():
-    return datetime.now(TR_TIMEZONE).strftime('%H:%M:%S')
+def get_system_time():
+    return datetime.now(TR_TZ).strftime('%H:%M:%S')
 
-# Sayfa Ayarlari
+# Sayfa Yapilandirmasi
 st.set_page_config(
     page_title="BORSANEURON | TERMINAL",
     page_icon="📡",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# Unified UI Styles (Bloomberg Terminal Concept - Emoji Free)
-TERMINAL_CSS = """
+# Professional Terminal CSS (No Emojis)
+TERMINAL_STYLE = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap');
     
-    .stApp { background-color: #0e1117; font-family: 'Roboto Mono', monospace; color: #e2e8f0; }
+    .stApp { background-color: #0e1117; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     
     /* Terminal Card */
     .terminal-card {
         background-color: #1a1c23;
         border: 1px solid #2d3748;
-        padding: 20px;
-        margin-bottom: 15px;
+        padding: 24px;
+        margin-bottom: 20px;
         border-radius: 4px;
     }
     
-    /* Header & Accents */
-    .terminal-header {
+    /* Header & Metrics */
+    .brand-header {
         color: #00f2ff;
+        font-family: 'Roboto Mono', monospace;
         font-weight: 700;
         letter-spacing: 2px;
-        border-bottom: 1px solid #00f2ff;
-        padding-bottom: 5px;
-        margin-bottom: 15px;
+        font-size: 1.5rem;
+        border-bottom: 1px solid #2d3748;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
     }
     
-    .cyan-text { color: #00f2ff; }
-    .amber-text { color: #f59e0b; }
-    
-    /* Metric & Labels */
-    .metric-label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
-    .metric-value { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; }
-    
-    /* Progress Bar */
-    .stProgress > div > div { background-color: #00f2ff !important; }
-    
-    /* Indicators */
-    .status-badge {
-        padding: 3px 10px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        border: 1px solid #00f2ff;
-        color: #00f2ff;
+    .metric-box {
+        display: inline-block;
+        margin-right: 15px;
+        padding: 5px 12px;
+        border-radius: 2px;
+        background: #0e1117;
+        border: 1px solid #2d3748;
     }
+    
+    .metric-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+    .metric-value-cyan { color: #00f2ff; font-weight: bold; font-family: 'Roboto Mono', monospace; }
+    .metric-value-amber { color: #ffbf00; font-weight: bold; font-family: 'Roboto Mono', monospace; }
+    
+    /* Buttons & Inputs */
+    .stButton > button {
+        background-color: #1a1c23; color: #00f2ff; border: 1px solid #00f2ff;
+        border-radius: 2px; text-transform: uppercase; font-weight: 600;
+    }
+    .stButton > button:hover { background-color: #00f2ff; color: #0e1117; }
     
     /* Sidebar */
     [data-testid="stSidebar"] { background-color: #0e1117; border-right: 1px solid #2d3748; }
 </style>
 """
-st.markdown(TERMINAL_CSS, unsafe_allow_html=True)
+st.markdown(TERMINAL_STYLE, unsafe_allow_html=True)
 
-# API Endpoint
-AI_API_URL = "https://borsaneuron-api.onrender.com/predict"
+# Endpoint Configuration
+AI_ENDPOINT = "https://borsaneuron-api.onrender.com/predict"
 
+# --- Hardcoded Index Lists ---
+BIST30 = "AKBNK,ARCLK,ASELS,ASTOR,BIMAS,BRSAN,EKGYO,ENKAI,EREGL,FROTO,GARAN,GUBRF,HEKTS,ISCTR,KCHOL,KONTR,KOZAL,KRDMD,ODAS,OYAKC,PETKM,PGSUS,SAHOL,SASA,SISE,TCELL,THYAO,TOASO,TUPRS,YKBNK".split(',')
+BIST100 = "AEFES,AGHOL,AKBNK,AKCNS,AKGRT,AKSEN,ALARK,ALBRK,ALEFS,ALGYO,ALKIM,ARCLK,ARDYZ,ASELS,ASTOR,ASUZU,AYDEM,BAGFS,BERA,BIENY,BIMAS,BRSAN,BRYAT,BUCIM,CANTE,CCOLA,CIMSA,CWENE,DOAS,DOHOL,EGEEN,EKGYO,ENJSA,ENKAI,EREGL,EUPWR,FROTO,GARAN,GENIL,GESAN,GLYHO,GUBRF,GWIND,HALKB,HEKTS,IPEKE,ISCTR,ISDMR,ISGYO,ISMEN,IZMDC,KARDM,KAYSE,KCHOL,KCAER,KFEIN,KONTR,KORDS,KOZAA,KOZAL,KRDMD,MAVI,MGROS,MIATK,NETAS,ODAS,OTKAR,OYAKC,PENTA,PETKM,PGSUS,QUAGR,SAHOL,SASA,SAYAS,SDTTR,SISE,SKBNK,SMRTG,SOKM,TABGD,TAVHL,TCELL,THYAO,TKFEN,TKNSA,TMSN,TOASO,TSKB,TTKOM,TTRAK,TUPRS,TURSG,ULKER,VAKBN,VESBE,VESTL,YEOTK,YKBNK,ZOREN".split(',')
+
+# --- Session State ---
+if 'watchlist' not in st.session_state: st.session_state.watchlist = []
+if 'last_results' not in st.session_state: st.session_state.last_results = []
+
+# --- Helper Functions ---
 @st.cache_resource
 def get_analyzer():
     return Analyzer()
 
-analyzer_engine = get_analyzer()
+analyzer_instance = get_analyzer()
 
-TUM_HISSELER_STR = """
-A1CAP, ACSEL, ADEL, ADESE, ADGYO, AEFES, AFYON, AGES, AGHOL, AGROT, AGYO, AHGAZ, AHSGY, AKBNK, AKCNS, AKENR, AKFGY, AKGRT, AKMGY, AKSA, AKSEN, AKSGY, AKSUE, AKYHO, ALARK, ALBRK, ALCAR, ALCTL, ALFAS, ALGYO, ALKA, ALKIM, ALMAD, ALTNY, ANELE, ANGEN, ANHYT, ANSGR, ARASE, ARCLK, ARDYZ, ARENA, ARSAN, ARZUM, ASELS, ASGYO, ASTOR, ASUZU, ATAKP, ATATP, ATEKS, ATLAS, ATPSY, AVGYO, AVHOL, AVOD, AVTUR, AYCES, AYDEM, AYEN, AYES, AYGAZ, AZTEK, BAGFS, BAKAB, BALAT, BANVT, BARMA, BASCM, BASGZ, BAYRK, BEGYO, BERA, BERK, BESLR, BEYAZ, BFREN, BIENY, BIGCH, BIMAS, BINBN, BINHO, BIOEN, BIZIM, BJKAS, BLCYT, BMSCH, BMSTL, BNTAS, BOBET, BORLS, BOSSA, BRISA, BRKO, BRKSN, BRKVY, BRLSM, BRMEN, BRSAN, BRYAT, BSOKE, BTCIM, BUCIM, BURCE, BURVA, BVSAN, BYDNR, CANTE, CASA, CATES, CCOLA, CELHA, CEMAS, CEMTS, CEOEM, CIMSA, CLEBI, CMBTN, CMENT, CONSE, COSMO, CRDFA, CRFSA, CUSAN, CVKMD, CWENE, DAGH, DAPGM, DARDL, DAREN, DENGE, DERHL, DERIM, DESA, DESPC, DEVA, DGATE, DGGYO, DGNMO, DIRIT, DITAS, DMSAS, DNISI, DOAS, DOBUR, DOGUB, DOHOL, DOKTA, DOYLE, DURDO, DYOBY, DZGYO, EBEBK, ECILC, ECZYT, EDATA, EDIP, EGEEN, EGGUB, EGPRO, EGSER, EKGYO, EKIZ, EKSUN, ELITE, EMNIS, ENJSA, ENKAI, ENSRI, ENTRA, EPLAS, EREGL, ERSU, ESCAR, ESCOM, ESEN, ETILR, ETYAT, EUHOL, EUREN, EUYO, FADE, FENER, FLAP, FMIZP, FONET, FORMT, FORTE, FRIGO, FROTO, FZLGY, GARAN, GARFA, GEDIK, GEDZA, GENTS, GEREL, GERSAN, GESAN, GGLO, GIPTA, GLBMD, GLRYH, GLYHO, GMTAS, GOKNR, GOLTS, GOODY, GOZDE, GPNTP, GRNYO, GRSEL, GSDDE, GSDHO, GUBRF, GUNDG, GWIND, GZNMI, HALKB, HATEK, HATSN, HDFGS, HEDEF, HEKTS, HKTM, HLGYO, HRKET, HTTBT, HUBVC, HUNER, HURGZ, ICBCT, IDEAS, IDGYO, IEYHO, IHEVA, IHGZT, IHLAS, IHLGM, IHYAY, IMASM, INDES, INFO, INGRM, INTEM, INVEO, INVES, IPEKE, ISATR, ISBIR, ISBTR, ISCTR, ISDMR, ISFIN, ISGSY, ISGYO, ISKPL, ISKUR, ISMEN, ISSEN, ISYAT, IZFAS, IZMDC, IZENR, JANTS, KAPLM, KAREL, KARSN, KARTN, KARYE, KATMR, KAYSE, KBORU, KCAER, KCHOL, KENT, KERVN, KERVT, KFEIN, KGYO, KILIZ, KIMMR, KLGYO, KLKIM, KLMSN, KLNMA, KLRHO, KLSYN, KMPUR, KNFRT, KOCMT, KONKA, KONTR, KONYA, KOPOL, KORDS, KOTON, KOZAL, KOZAA, KRGYO, KRONT, KRPLS, KRSTL, KRTEK, KRVGD, KSTUR, KTLEV, KTSKR, KUTPO, KUVVA, KUYAS, KZBGY, KZGYO, LIDER, LIDFA, LILAK, LINK, LKMNH, LMKDC, LOGO, LUKSK, MAALT, MACKO, MAGEN, MAKIM, MAKTK, MANAS, MARBL, MARKA, MARTI, MAVI, MEDTR, MEGAP, MEKAG, MENTD, MEPET, MERCN, MERIT, MERKO, METRO, METUR, MGROS, MIATK, MHRGY, MIPAZ, MKRS, MNDRS, MOBTL, MPARK, MRGYO, MRSHL, MSGYO, MTRKS, MTRYO, MZHLD, NATEN, NETAS, NIBAS, NTGAZ, NTHOL, NUGYO, NUHCM, OBAMS, OBAS, ODAS, ODINE, OFSYM, ONCSM, ORCAY, ORGE, ORMA, OSMEN, OSTIM, OTKAR, OYAKC, OYLUM, OYOYO, OZGYO, OZKGY, OZRDN, OZSUB, PAGYO, PAMEL, PARSN, PASEU, PATEK, PCILT, PEGYO, PEKGY, PENGD, PENTA, PETKM, PETUN, PGSUS, PINSU, PKART, PKENT, PLAT, PNLSN, PNSUT, POLHO, POLTK, PRDGS, PRKAB, PRKME, PRZMA, PSDTC, PSGYO, QNBFB, QUAGR, RALYH, RAYSG, REEDR, RGYAS, RNPOL, RODRG, ROYAL, RTALB, RUBNS, RYGYO, RYSAS, SAFKR, SAHOL, SAMAT, SANEL, SANFM, SANKO, SARKY, SASA, SAYAS, SDTTR, SEGYO, SEKFK, SEKUR, SELEC, SELGD, SELVA, SEYKM, SILVR, SISE, SKBNK, SKTAS, SMART, SMRTG, SNAI, SNICA, SNPAM, SODSN, SOKE, SOKM, SONME, SRVGY, SUMAS, SUNGW, SURGY, SUWEN, TABGD, TARKM, TATGD, TAVHL, TBORG, TCELL, TDGYO, TEKTU, TERRA, TGSAS, THYAO, TKFEN, TKNSA, TLMAN, TMPOL, TMSN, TNZTP, TOASO, TRCAS, TRGYO, TRILC, TSKB, TSPOR, TTKOM, TTRAK, TUCLK, TUKAS, TUPRS, TUREX, TURGG, TURSG, UFUK, ULAS, ULKER, ULUFA, ULUSE, ULUUN, UMPAS, UNLU, USAK, UZERB, VAKBN, VAKFN, VAKKO, VANGD, VBTYZ, VERUS, VESBE, VESTL, VKFYO, VKGYO, VKING, VRGYO, YAPRK, YATAS, YAYLA, YBTAS, YEOTK, YESIL, YGGYO, YGYO, YKBNK, YKSLN, YONGA, YUNSA, YYAPI, YYLGD, ZEDUR, ZOREN, ZRGYO
-"""
+def calculate_perf(df, lookback_bars):
+    if len(df) < lookback_bars + 1: return 0.0
+    current = df.iloc[-1]['Close']
+    past = df.iloc[-(lookback_bars+1)]['Close']
+    return float((current - past) / past)
 
-BIST30 = "AKBNK,ARCLK,ASELS,ASTOR,BIMAS,BRSAN,EKGYO,ENKAI,EREGL,FROTO,GARAN,GUBRF,HEKTS,ISCTR,KCHOL,KONTR,KOZAL,KRDMD,ODAS,OYAKC,PETKM,PGSUS,SAHOL,SASA,SISE,TCELL,THYAO,TOASO,TUPRS,YKBNK".split(',')
-
-# --- Veri Getirme Modulu ---
 @st.cache_data(ttl=600)
-def veri_getir(hisse, bar_sayisi, interval, period):
+def fetch_data(ticker, interval, period):
     try:
         session = requests.Session()
-        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'})
-        
-        symbol = f"{hisse}.IS" if not hisse.endswith(".IS") else hisse
+        session.headers.update({'User-Agent': 'Mozilla/5.0'})
+        symbol = f"{ticker}.IS"
         df = yf.download(symbol, period=period, interval=interval, progress=False, session=session)
         
-        if df is None or df.empty or len(df) < 50:
-            return None
-            
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-            
-        df = df.rename(columns={'Open':'Open', 'High':'High', 'Low':'Low', 'Close':'Close', 'Volume':'Volume'})
+        if df is None or df.empty or len(df) < 50: return None
+        if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
         
-        # Nan Temizligi
-        if df['Close'].isnull().any():
-            df = df.ffill().dropna()
-            
-        return df.tail(bar_sayisi)
+        df = df.rename(columns={'Open':'Open', 'High':'High', 'Low':'Low', 'Close':'Close', 'Volume':'Volume'})
+        if df['Close'].isnull().any(): df = df.ffill().dropna()
+        
+        return df
     except:
         return None
 
-# --- AI Tahmin Modulu ---
-def ai_tahmin_al(hisse, df):
+def get_ai_prediction(hisse, df):
     try:
+        # Prepare 100 bars for AI
         df_sub = df.tail(100).copy()
         df_sub['date'] = df_sub.index.strftime('%Y-%m-%d')
-        
-        # Payload Hazirliği
         veriler = df_sub.rename(columns=lambda x: x.lower()).to_dict(orient='records')
-        payload = {"hisse": hisse, "veriler": veriler}
         
-        response = requests.post(AI_API_URL, json=payload, timeout=15)
-        if response.status_code == 200:
-            return response.json()
-        return {"hata": "Sistem Hazırlanıyor"}
+        payload = {"hisse": hisse, "veriler": veriler}
+        response = requests.post(AI_ENDPOINT, json=payload, timeout=12)
+        
+        if response.status_code == 200: return response.json()
+        return {"hata": "Yapay Zeka Onayı Bekleniyor"}
     except:
-        return {"hata": "Sistem Hazırlanıyor"}
+        return {"hata": "Yapay Zeka Onayı Bekleniyor"}
 
-# --- Analiz Modulu ---
-def analiz_yap(df, secilenlar, zaman_etiketi):
-    sonuclar = []
-    df_work = df.copy()
-    if 'Date' not in df_work.columns: df_work['Date'] = df_work.index
+def execute_analysis(df, active_patterns, label):
+    results = []
+    df_c = df.copy()
+    if 'Date' not in df_c.columns: df_c['Date'] = df_c.index
     
-    # Analyzer Ayarlari
-    analyzer_engine.config['enabled_patterns'] = {
-        'tobo': "TOBO (Ters Omuz Baş Omuz)" in secilenlar,
-        'obo': "OBO (Omuz Baş Omuz)" in secilenlar,
-        'cup': "Fincan Kulp" in secilenlar,
-        'flag': "Boğa Bayrağı" in secilenlar,
-        'flama': "Flama" in secilenlar,
+    # Configure Patterns
+    analyzer_instance.config['enabled_patterns'] = {
+        'tobo': "TOBO" in active_patterns,
+        'obo': "OBO" in active_patterns,
+        'cup': "Fincan Kulp" in active_patterns,
+        'flag': "Boğa Bayrağı" in active_patterns,
+        'flama': "Flama" in active_patterns,
     }
     
     try:
-        tf = "Gunluk" if "GUNLUK" in zaman_etiketi else "Saatlik"
-        df_ind = analyzer_engine.add_indicators(df_work)
-        patterns = analyzer_engine.detect_classic_patterns(df_ind, timeframe=tf)
+        tf = "Gunluk" if "GUNLUK" in label else "Saatlik"
+        df_full = analyzer_instance.add_indicators(df_c)
+        found = analyzer_instance.detect_classic_patterns(df_full, timeframe=tf)
         
-        if "RSI Uyumsuzluğu" in secilenlar:
-            zz = analyzer_engine.calculate_zigzag(df_ind)
-            patterns.extend(analyzer_engine.detect_rsi_divergence(df_ind, zz, tf))
+        if "RSI Uyumsuzluğu" in active_patterns:
+            zz = analyzer_instance.calculate_zigzag(df_full)
+            found.extend(analyzer_instance.detect_rsi_divergence(df_full, zz, tf))
         
-        if "High Tight Flag (Roket)" in secilenlar:
-            patterns.extend(analyzer_engine.detect_high_tight_flag(df_ind))
+        if "High Tight Flag (Roket)" in active_patterns:
+            found.extend(analyzer_instance.detect_high_tight_flag(df_full))
             
-        if "Mum Formasyonları" in secilenlar:
-            patterns.extend(analyzer_engine.detect_candlestick_patterns(df_ind, tf))
+        if "Mum Formasyonları" in active_patterns:
+            found.extend(analyzer_instance.detect_candlestick_patterns(df_full, tf))
             
-        for p in patterns:
-            price = float(df_ind.iloc[-1]['Close'])
-            sonuclar.append({
-                "Formasyon": p.get('name', 'Bilinmeyen'),
-                "Skor": p.get('score', 0),
-                "Fiyat": price,
-                "Hedef": p.get('target', price * 1.05),
-                "Stop": p.get('stop', price * 0.95),
-                "Sinyal": p.get('signal', 'Bullish'),
-                "Tetikleyiciler": p.get('desc', '')
+        for p in found:
+            results.append({
+                "Name": p.get('name', 'Bilinmeyen'),
+                "Score": p.get('score', 0),
+                "Signal": p.get('signal', 'Bullish'),
+                "Target": p.get('target', 0),
+                "Stop": p.get('stop', 0),
+                "Desc": p.get('desc', '')
             })
     except: pass
-    return sonuclar
+    return results
 
-# --- Main Page UI ---
-col_head, col_time = st.columns([3, 1])
-with col_head:
-    st.markdown("<h1 class='cyan-text' style='letter-spacing:3px;'>BORSANEURON | TERMINAL</h1>", unsafe_allow_html=True)
-with col_time:
-    st.markdown(f"<div style='text-align:right; color:#94a3b8; font-size:0.9rem;'>SISTEM SAATI: {get_tr_now()}</div>", unsafe_allow_html=True)
+# --- Header ---
+c_title, c_clock = st.columns([3, 1])
+with c_title:
+    st.markdown("<div class='brand-header'>BORSANEURON | TERMINAL</div>", unsafe_allow_html=True)
+with c_clock:
+    st.markdown(f"<div style='text-align:right; color:#94a3b8; font-family:Roboto Mono;'>SISTEM SAATI: {get_system_time()}</div>", unsafe_allow_html=True)
 
-# Sidebar
+# --- Sidebar ---
 with st.sidebar:
-    st.markdown("<h3 class='cyan-text'>AYARLAR</h3>", unsafe_allow_html=True)
-    zaman_dilimi = st.selectbox("Periyot", ["GUNLUK (1D)", "HAFTALIK (1W)", "4 SAATLIK (4h)", "1 SAATLIK (1h)"])
-    if "GUNLUK" in zaman_dilimi: yf_int, yf_per, z_etiket = "1d", "2y", "GUNLUK"
-    elif "HAFTALIK" in zaman_dilimi: yf_int, yf_per, z_etiket = "1wk", "5y", "HAFTALIK"
-    else: yf_int, yf_per, z_etiket = "60m", "730d", "SAATLIK"
+    st.markdown("<div style='color:#00f2ff; font-weight:bold; padding-bottom:10px;'>KONTROL MERKEZI</div>", unsafe_allow_html=True)
     
-    ticker_input = st.text_input("Hisse Kodu (Virgulle)", "THYAO, GARAN")
-    hisseler = [h.strip().upper() for h in ticker_input.split(',')]
+    tarama_modu = st.radio("Tarama Listesi", ["BIST 30", "BIST 100", "OZEL TAKIP LISTESI"])
     
-    secilen_formasyonlar = st.multiselect("Formasyonlar", [
-        "TOBO (Ters Omuz Baş Omuz)", "OBO (Omuz Baş Omuz)", "Fincan Kulp",
-        "Boğa Bayrağı", "Flama", "High Tight Flag (Roket)", "RSI Uyumsuzluğu", "Mum Formasyonları"
-    ], default=["Boğa Bayrağı", "TOBO (Ters Omuz Baş Omuz)"])
-    
-    btn_scan = st.button("TARAMAYI CALISTIR", type="primary", use_container_width=True)
+    if tarama_modu == "OZEL TAKIP LISTESI":
+        st.info("Virgül kullanarak hisse ekleyin (örn: THYAO, ASELS)")
+        new_tickers = st.text_input("Hisse Ekle/Guncelle", ",".join(st.session_state.watchlist))
+        if st.button("LISTEYI KAYDET"):
+            st.session_state.watchlist = [t.strip().upper() for t in new_tickers.split(',') if t.strip()]
+            st.success("Liste Guncellendi")
+        current_hisseler = st.session_state.watchlist
+    elif tarama_modu == "BIST 30":
+        current_hisseler = BIST30
+    else:
+        current_hisseler = BIST100
 
-# Scan Execution
-if btn_scan:
-    results = []
-    bar = st.progress(0)
-    for i, h in enumerate(hisseler):
-        bar.progress((i+1)/len(hisseler))
-        df = veri_getir(h, 200, yf_int, yf_per)
-        if df is not None:
-            # AI Inference
-            ai_res = ai_tahmin_al(h, df)
-            # Technical Analysis
-            tech_res = analiz_yap(df, secilen_formasyonlar, z_etiket)
-            results.append({"hisse": h, "df": df, "ai": ai_res, "tech": tech_res})
-    bar.empty()
-    st.session_state.last_results = results
+    zaman_secimi = st.selectbox("Periyot", ["GUNLUK (1D)", "SAATLIK (1h)"])
+    if "GUNLUK" in zaman_secimi: yf_int, yf_per, label = "1d", "2y", "GUNLUK"
+    else: yf_int, yf_per, label = "60m", "730d", "SAATLIK"
+    
+    formasyon_secimi = st.multiselect("Formasyonlar", [
+        "TOBO", "OBO", "Fincan Kulp", "Boğa Bayrağı", "Flama", 
+        "High Tight Flag (Roket)", "RSI Uyumsuzluğu", "Mum Formasyonları"
+    ], default=["Boğa Bayrağı", "TOBO", "Mum Formasyonları"])
+    
+    if st.button("TERMINAL TARAMASINI BASLAT", use_container_width=True):
+        st.session_state.last_results = []
+        progress = st.progress(0)
+        for i, h in enumerate(current_hisseler):
+            progress.progress((i+1)/len(current_hisseler))
+            df = fetch_data(h, yf_int, yf_per)
+            if df is not None:
+                ai = get_ai_prediction(h, df)
+                tech = execute_analysis(df, formasyon_secimi, label)
+                
+                # Performance Stats
+                perf_h = calculate_perf(df, 1) # ~1 bar (hour if 1h, day if 1d)
+                perf_m = calculate_perf(df, 22) # ~1 trading month
+                
+                st.session_state.last_results.append({
+                    "hisse": h, "price": float(df.iloc[-1]['Close']), 
+                    "perf_h": perf_h, "perf_m": perf_m,
+                    "ai": ai, "tech": tech
+                })
+        progress.empty()
 
-# Display
-if 'last_results' in st.session_state:
+# --- Main Content ---
+if not st.session_state.last_results:
+    st.markdown("<div class='amber-text' style='text-align:center; padding:50px;'>Veri Bağlantısı Bekleniyor... Tarama başlatılmadı.</div>", unsafe_allow_html=True)
+else:
     for res in st.session_state.last_results:
         with st.container():
-            st.markdown(f"<div class='terminal-card'>", unsafe_allow_html=True)
+            st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
             
             # Card Header
-            c_h, c_m = st.columns([3, 1])
-            with c_h:
-                st.markdown(f"<span class='metric-value'>{res['hisse']}</span> <span style='color:#94a3b8;'>SECTOR ANALYSIS</span>", unsafe_allow_html=True)
-            with c_m:
-                conf = res['ai'].get('guven_orani', 0)
-                hata = res['ai'].get('hata')
-                if hata:
-                    st.markdown(f"<div class='amber-text' style='text-align:right;'>{hata}</div>", unsafe_allow_html=True)
+            c1, c2 = st.columns([3, 1])
+            with c1:
+                st.markdown(f"<span style='font-size:1.8rem; font-weight:700; color:#00f2ff;'>{res['hisse']}</span>", unsafe_allow_html=True)
+                # Small Performance Metrics
+                st.markdown(f"""
+                <div class='metric-box'><span class='metric-label'>SAATLIK:</span> <span class='{'metric-value-cyan' if res['perf_h']>=0 else 'metric-value-amber'}'>%{res['perf_h']*100:.2f}</span></div>
+                <div class='metric-box'><span class='metric-label'>AYLIK:</span> <span class='{'metric-value-cyan' if res['perf_m']>=0 else 'metric-value-amber'}'>%{res['perf_m']*100:.2f}</span></div>
+                """, unsafe_allow_html=True)
+            
+            with c2:
+                ai_data = res['ai']
+                if 'hata' in ai_data:
+                    st.markdown(f"<div class='metric-label'>AI DURUM</div><div class='metric-value-amber' style='font-size:0.9rem;'>{ai_data['hata']}</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div style='text-align:right;'><div class='metric-label'>AI TRUST</div><div class='cyan-text' style='font-size:1.5rem;'>%{conf*100:.1f}</div></div>", unsafe_allow_html=True)
+                    conf = ai_data.get('guven_orani', 0)
+                    st.markdown(f"<div class='metric-label'>AI GUVENI</div><div class='metric-value-cyan' style='font-size:1.5rem;'>%{conf*100:.1f}</div>", unsafe_allow_html=True)
             
-            # Tech Patterns Info
+            # Patterns
             if res['tech']:
+                st.markdown("<div style='margin-top:15px; border-top:1px solid #2d3748; padding-top:10px;'>", unsafe_allow_html=True)
                 for p in res['tech']:
-                    st.markdown(f"<span class='status-badge'>{p['Formasyon']}</span> <span style='color:#e2e8f0; font-size:0.8rem;'>{p['Tetikleyiciler']}</span>", unsafe_allow_html=True)
+                    sig_color = "#00f2ff" if p['Signal'] == "Bullish" else "#ffbf00"
+                    st.markdown(f"""
+                    <div style='margin-bottom:5px;'>
+                        <span style='background:{sig_color}; color:#0e1117; font-size:0.7rem; font-weight:bold; padding:2px 6px; border-radius:2px;'>{p['Name']}</span>
+                        <span style='color:#94a3b8; font-size:0.8rem; margin-left:10px;'>{p['Desc']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
             
-            # Metrics
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric("GIRIS", f"{res['df'].iloc[-1]['Close']:.2f}")
-            m2.metric("HEDEF", f"{res['df'].iloc[-1]['Close']*1.05:.2f}", "5.0%")
-            m3.metric("STOP", f"{res['df'].iloc[-1]['Close']*0.95:.2f}", "-5.0%", delta_color="inverse")
-            m4.metric("PERIYOT", z_etiket)
+            # Prices
+            p1, p2, p3 = st.columns(3)
+            p1.metric("FIYAT", f"{res['price']:.2f}")
+            p2.metric("HEDEF", f"{res['price']*1.05:.2f}", "5.0%")
+            p3.metric("STOP", f"{res['price']*0.95:.2f}", "-5.0%", delta_color="inverse")
             
             st.markdown("</div>", unsafe_allow_html=True)
-            st.divider()

@@ -545,9 +545,9 @@ else:
         table_rows.append({
             "Hisse": item['ticker'],
             "Fiyat (₺)": round(item['price'], 2),
-            "Hedef (₺)": round(best_target, 2) if best_target else "-",
-            "Potansiyel (%)": pot_pct if pot_pct else "-",
-            "Stop (₺)": round(best_stop, 2) if best_stop else "-",
+            "Hedef (₺)": round(best_target, 2) if best_target else None,
+            "Potansiyel (%)": pot_pct if pot_pct else None,
+            "Stop (₺)": round(best_stop, 2) if best_stop else None,
             "1P (%)":  round(item['p1h'], 2) if item['p1h'] else None,
             "AI": karar,
             "Güven (%)": round(conf * 100, 1) if conf else 0,

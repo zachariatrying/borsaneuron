@@ -61,17 +61,7 @@ if 'watchlist' not in st.session_state:
 
 # Removed local send_telegram function in favor of src.telegram_utils.send_telegram_alert
 
-st.markdown("""
-<div style="text-align:center; padding:10px 0 24px 0;">
-    <h1 style="font-size:2.2rem; font-weight:800;
-        background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom:4px;">
-        Telegram Bildirim
-    </h1>
-    <p style="color:#64748b; font-size:0.95rem;">Alarm ve tarama sonuclarini Telegram uzerinden gonder</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='brand-header'>TELEGRAM BILDIRIM</div><div class='page-subtitle'>Alarm ve tarama sonuclarini Telegram uzerinden gonder</div>", unsafe_allow_html=True)
 
 # --- Kurulum Rehberi ---
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)

@@ -100,17 +100,7 @@ def get_sector_performance(sector_tickers: dict) -> pd.DataFrame:
     return pd.DataFrame(ticker_data) if ticker_data else pd.DataFrame()
 
 # Sayfa Basligi
-st.markdown("""
-<div style="text-align:center; padding:10px 0 24px 0;">
-    <h1 style="font-size:2.2rem; font-weight:800;
-        background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom:4px;">
-        Piyasa Dashboard
-    </h1>
-    <p style="color:#64748b; font-size:0.95rem;">BIST anlik piyasa ozeti ve sektorel analiz</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='brand-header'>PIYASA DASHBOARD</div><div class='page-subtitle'>BIST anlik piyasa ozeti ve sektorel analiz</div>", unsafe_allow_html=True)
 
 with st.spinner("Piyasa verileri yukleniyor..."):
     xu030 = get_index_data("XU030.IS", "6mo")

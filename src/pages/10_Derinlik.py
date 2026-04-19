@@ -58,17 +58,7 @@ BIST100_TICKERS = [
     "YEOTK", "YKBNK", "YYLGD", "ZOREN"
 ]
 
-st.markdown("""
-<div style="text-align:center; padding:10px 0 24px 0;">
-    <h1 style="font-size:2.2rem; font-weight:800;
-        background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom:4px;">
-        Derinlik Analizi
-    </h1>
-    <p style="color:#64748b; font-size:0.95rem;">Telegram @borsabilgibot uzerinden gercek zamanli derinlik goruntusu</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='brand-header'>DERINLIK ANALIZI</div><div class='page-subtitle'>Telegram borsabilgibot uzerinden gercek zamanli derinlik</div>", unsafe_allow_html=True)
 
 # Helper function
 def get_client(api_id, api_hash):

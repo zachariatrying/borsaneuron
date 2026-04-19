@@ -145,17 +145,7 @@ def run_backtest(df, analyzer, pattern_type, secilen_formasyon):
     return results
 
 # Sayfa
-st.markdown("""
-<div style="text-align:center; padding:10px 0 24px 0;">
-    <h1 style="font-size:2.2rem; font-weight:800;
-        background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom:4px;">
-        Backtesting
-    </h1>
-    <p style="color:#64748b; font-size:0.95rem;">Gecmis formasyonlarin basari oranini test edin</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='brand-header'>BACKTESTING</div><div class='page-subtitle'>Gecmis formasyonlarin basari oranini test edin</div>", unsafe_allow_html=True)
 
 # Inputlar
 st.markdown('<div class="glass-card">', unsafe_allow_html=True)

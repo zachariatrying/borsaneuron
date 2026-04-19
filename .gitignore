@@ -8,7 +8,7 @@ __pycache__/
 *.parquet
 src/market_data_cache/
 *.log
-.streamlit/
+.streamlit/secrets.toml
 history/
 Grafikler/
 test_charts/

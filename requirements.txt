@@ -5,6 +5,7 @@ pandas
 numpy
 scikit-learn
 yfinance
+curl_cffi
 plotly
 requests
 joblib

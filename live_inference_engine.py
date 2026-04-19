@@ -38,14 +38,16 @@ DEFAULT_MODEL_PATH    = os.path.join(BASE_DIR, 'best_model_acm465.joblib')
 DEFAULT_SCALER_PATH   = os.path.join(BASE_DIR, 'best_scaler_acm465.joblib')
 DEFAULT_FEATURES_PATH = os.path.join(BASE_DIR, 'best_features_acm465.joblib')
 
-# Egitimde kullanilan tum ozellikler (multicollinearity oncesi tam liste)
+# Egitimde kullanilan tum ozellikler (30 kolonluk dataset tabanli)
 ALL_FEATURES = [
-    'RSI', 'MACD', 'MACD_Signal', 'MACD_Hist',
-    'BB_Upper', 'BB_Mid', 'BB_Lower', 'BB_Width',
-    'SMA_20', 'SMA_50',
-    'Daily_Return', 'Volatility_20',
-    'Volume_Ratio',
-    'is_bull_flag'
+    'RSI_14', 'MACD', 'MACD_Signal',
+    'ATR_14', 'Stoch_K', 'Stoch_D',
+    'BB_Upper', 'BB_Middle', 'BB_Lower',
+    'SMA_20', 'SMA_50', 'SMA_200',
+    'Support_Level', 'Resistance_Level',
+    'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope',
+    'Expert_Signal',
+    'Pat_Cup_Handle', 'Pat_Flag', 'Pat_OBO', 'Pat_TOBO', 'Pat_Yok'
 ]
 
 
@@ -151,15 +153,11 @@ class LiveInferenceEngine:
     def prepare_live_data(self, raw_data: pd.DataFrame) -> Optional[pd.DataFrame]:
         """
         Ham OHLCV verisini modelin anlayacagi formata donusturur.
-
-        Gereken kolonlar: Open, High, Low, Close, Volume (en az 50 satir)
-        Hesaplanan ozellikler: RSI, MACD, Bollinger, Bull Flag, vs.
-
-        Args:
-            raw_data: DataFrame — Open, High, Low, Close, Volume kolonlari
-
-        Returns:
-            pd.DataFrame: Islenilmis ve olceklenmis ozellikler veya None
+        30 kolonluk dataset ile egitilmis modele uyumlu 23 feature hesaplar:
+        - RSI_14, MACD, MACD_Signal, ATR_14, Stochastic K/D
+        - Bollinger Upper/Middle/Lower, SMA 20/50/200
+        - Support/Resistance, Depth_Ratio, Neckline_Slope
+        - Expert_Signal, Pattern Type dummies
         """
         if not self._ready:
             print("[LiveEngine] Motor hazir degil!")
@@ -184,51 +182,93 @@ class LiveInferenceEngine:
             gain = delta.clip(lower=0).rolling(14).mean()
             loss = (-delta.clip(upper=0)).rolling(14).mean()
             loss = loss.replace(0, 1e-10)
-            df['RSI'] = 100 - (100 / (1 + gain / loss))
+            df['RSI_14'] = 100 - (100 / (1 + gain / loss))
 
             # --- MACD ---
             ema12 = df['Close'].ewm(span=12, adjust=False).mean()
             ema26 = df['Close'].ewm(span=26, adjust=False).mean()
             df['MACD'] = ema12 - ema26
             df['MACD_Signal'] = df['MACD'].ewm(span=9, adjust=False).mean()
-            df['MACD_Hist'] = df['MACD'] - df['MACD_Signal']
+
+            # --- ATR (14 gun) ---
+            high_low = df['High'] - df['Low']
+            high_close = (df['High'] - df['Close'].shift()).abs()
+            low_close = (df['Low'] - df['Close'].shift()).abs()
+            true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+            df['ATR_14'] = true_range.rolling(14).mean()
+
+            # --- Stochastic Oscillator (14 gun) ---
+            low_14 = df['Low'].rolling(14).min()
+            high_14 = df['High'].rolling(14).max()
+            df['Stoch_K'] = ((df['Close'] - low_14) / (high_14 - low_14).replace(0, 1e-10)) * 100
+            df['Stoch_D'] = df['Stoch_K'].rolling(3).mean()
 
             # --- Bollinger Bantlari (20 gun) ---
-            df['BB_Mid'] = df['Close'].rolling(20).mean()
+            df['BB_Middle'] = df['Close'].rolling(20).mean()
             bb_std = df['Close'].rolling(20).std()
-            df['BB_Upper'] = df['BB_Mid'] + 2 * bb_std
-            df['BB_Lower'] = df['BB_Mid'] - 2 * bb_std
-            df['BB_Width'] = (df['BB_Upper'] - df['BB_Lower']) / df['BB_Mid'].replace(0, 1e-10)
+            df['BB_Upper'] = df['BB_Middle'] + 2 * bb_std
+            df['BB_Lower'] = df['BB_Middle'] - 2 * bb_std
 
             # --- SMA ---
             df['SMA_20'] = df['Close'].rolling(20).mean()
             df['SMA_50'] = df['Close'].rolling(50).mean()
+            df['SMA_200'] = df['Close'].rolling(200).mean()
 
-            # --- Getiri ve Volatilite ---
-            df['Daily_Return'] = df['Close'].pct_change()
-            df['Volatility_20'] = df['Daily_Return'].rolling(20).std()
+            # --- Support / Resistance Seviyeleri ---
+            df['Support_Level'] = df['Low'].rolling(20).min()
+            df['Resistance_Level'] = df['High'].rolling(20).max()
 
-            # --- Hacim Orani ---
-            vol_sma = df['Volume'].rolling(20).mean().replace(0, 1e-10)
-            df['Volume_Ratio'] = df['Volume'] / vol_sma
+            # --- Volume Trend ---
+            vol_sma = df['Volume'].rolling(20).mean()
+            df['Volume_Trend'] = (df['Volume'] > vol_sma).astype(int)
 
-            # --- Boga Bayragi (Bull Flag) ---
+            # --- Depth Ratio (Fiyatin destek-direnç aralığındaki konumu) ---
+            sr_range = (df['Resistance_Level'] - df['Support_Level']).replace(0, 1e-10)
+            df['Depth_Ratio'] = (df['Close'] - df['Support_Level']) / sr_range
+
+            # --- Neckline Slope (SMA_20 eğimi) ---
+            df['Neckline_Slope'] = df['SMA_20'].diff(5) / df['SMA_20'].shift(5).replace(0, 1e-10)
+
+            # --- Expert Signal (Basit kural tabanli) ---
+            df['Expert_Signal'] = 0
+            # AL sinyali: RSI < 40 ve Stoch_K < 30 ve Close > SMA_50
+            al_mask = (df['RSI_14'] < 40) & (df['Stoch_K'] < 30) & (df['Close'] > df['SMA_50'])
+            df.loc[al_mask, 'Expert_Signal'] = 1
+            # SAT sinyali: RSI > 70 ve Stoch_K > 80
+            sat_mask = (df['RSI_14'] > 70) & (df['Stoch_K'] > 80)
+            df.loc[sat_mask, 'Expert_Signal'] = -1
+
+            # --- Pattern Type Detection (Basit) ---
+            df['Pat_Cup_Handle'] = 0
+            df['Pat_Flag'] = 0
+            df['Pat_OBO'] = 0
+            df['Pat_TOBO'] = 0
+            df['Pat_Yok'] = 1  # Default: formasyon yok
+
             close = df['Close'].values
-            high = df['High'].values
+            high_vals = df['High'].values
+            low_vals = df['Low'].values
             sma20 = df['SMA_20'].values
-            flag_signal = np.zeros(len(df))
 
             for i in range(40, len(df)):
-                wh = high[i-40:i].max()
+                # Bull Flag detection
+                wh = high_vals[i-40:i].max()
                 wl = close[i-40:i].min()
-                if wl <= 0:
-                    continue
-                if (wh - wl) / wl < 0.05:
-                    continue
-                if close[i] > wh * 0.88 and not np.isnan(sma20[i]) and close[i] > sma20[i]:
-                    flag_signal[i] = 1
+                if wl > 0 and (wh - wl) / wl >= 0.05:
+                    if close[i] > wh * 0.88 and not np.isnan(sma20[i]) and close[i] > sma20[i]:
+                        df.iloc[i, df.columns.get_loc('Pat_Flag')] = 1
+                        df.iloc[i, df.columns.get_loc('Pat_Yok')] = 0
 
-            df['is_bull_flag'] = flag_signal
+                # TOBO detection (basit: son 20 barda V seklinde dip)
+                if i >= 20:
+                    segment = close[i-20:i+1]
+                    mid = len(segment) // 2
+                    left_high = segment[:mid].max()
+                    dip = segment[mid-3:mid+3].min()
+                    right = close[i]
+                    if dip < left_high * 0.95 and right > left_high * 0.98:
+                        df.iloc[i, df.columns.get_loc('Pat_TOBO')] = 1
+                        df.iloc[i, df.columns.get_loc('Pat_Yok')] = 0
 
             return df
 
@@ -344,12 +384,18 @@ class LiveInferenceEngine:
             "tetikleyici_nedenler": nedenler,
             "detay": {
                 "fiyat": round(float(last['Close']), 2),
-                "rsi": round(float(last.get('RSI', 0)), 2),
+                "rsi_14": round(float(last.get('RSI_14', 0)), 2),
                 "macd": round(float(last.get('MACD', 0)), 4),
-                "bollinger_width": round(float(last.get('BB_Width', 0)), 4),
-                "is_bull_flag": int(last.get('is_bull_flag', 0)),
-                "daily_return": round(float(last.get('Daily_Return', 0)), 4),
-                "volume_ratio": round(float(last.get('Volume_Ratio', 0)), 2),
+                "stoch_k": round(float(last.get('Stoch_K', 0)), 2),
+                "stoch_d": round(float(last.get('Stoch_D', 0)), 2),
+                "atr_14": round(float(last.get('ATR_14', 0)), 4),
+                "depth_ratio": round(float(last.get('Depth_Ratio', 0)), 4),
+                "expert_signal": int(last.get('Expert_Signal', 0)),
+                "volume_trend": int(last.get('Volume_Trend', 0)),
+                "pattern": "Flag" if int(last.get('Pat_Flag', 0)) else
+                           "TOBO" if int(last.get('Pat_TOBO', 0)) else
+                           "Cup" if int(last.get('Pat_Cup_Handle', 0)) else
+                           "OBO" if int(last.get('Pat_OBO', 0)) else "Yok",
             },
             "model_tipi": self.model_type,
             "zaman": datetime.now().isoformat()
@@ -359,38 +405,57 @@ class LiveInferenceEngine:
         """Tahmin icin insan-okunabilir tetikleyici nedenler uretir."""
         reasons = []
         try:
-            rsi = float(row.get('RSI', 50))
+            rsi = float(row.get('RSI_14', 50))
             macd = float(row.get('MACD', 0))
-            macd_hist = float(row.get('MACD_Hist', 0))
-            bull_flag = int(row.get('is_bull_flag', 0))
-            vol_ratio = float(row.get('Volume_Ratio', 1))
-            bb_width = float(row.get('BB_Width', 0))
-            daily_ret = float(row.get('Daily_Return', 0))
+            stoch_k = float(row.get('Stoch_K', 50))
+            stoch_d = float(row.get('Stoch_D', 50))
+            atr = float(row.get('ATR_14', 0))
+            depth = float(row.get('Depth_Ratio', 0.5))
+            expert = int(row.get('Expert_Signal', 0))
+            vol_trend = int(row.get('Volume_Trend', 0))
+            neckline = float(row.get('Neckline_Slope', 0))
+            pat_flag = int(row.get('Pat_Flag', 0))
+            pat_tobo = int(row.get('Pat_TOBO', 0))
+            pat_cup = int(row.get('Pat_Cup_Handle', 0))
 
             if karar == 1:  # AL
                 if rsi < 30:
-                    reasons.append("RSI asiri satim bolgesinde (<30)")
+                    reasons.append(f"RSI asiri satim bolgesinde ({rsi:.0f})")
                 elif rsi < 45:
-                    reasons.append("RSI asiri satim bolgesinden cikti")
-                if macd_hist > 0:
-                    reasons.append("MACD histogram pozitife dondu")
-                if bull_flag == 1:
-                    reasons.append("Bull Flag Formasyonu onaylandi")
-                if vol_ratio > 1.5:
-                    reasons.append(f"Hacim ortalamanin {vol_ratio:.1f}x uzerinde")
-                if daily_ret > 0.02:
-                    reasons.append("Gunluk getiri guclu (+%2 uzerinde)")
-                if bb_width < 0.1:
-                    reasons.append("Bollinger daralmasi — kırılım bekleniyor")
+                    reasons.append(f"RSI dusuk bolgede ({rsi:.0f}) - toparlanma bekleniyor")
+                if stoch_k < 20:
+                    reasons.append(f"Stochastic asiri satim ({stoch_k:.0f})")
+                if macd > 0:
+                    reasons.append("MACD pozitif bolgede")
+                if pat_flag == 1:
+                    reasons.append("Boga Bayragi (Bull Flag) formasyonu aktif")
+                if pat_tobo == 1:
+                    reasons.append("TOBO formasyonu tespit edildi")
+                if pat_cup == 1:
+                    reasons.append("Fincan-Kulp formasyonu tespit edildi")
+                if vol_trend == 1:
+                    reasons.append("Hacim ortalama uzerinde")
+                if depth < 0.3:
+                    reasons.append(f"Fiyat destege yakin (Derinlik: {depth:.2f})")
+                if neckline > 0.01:
+                    reasons.append("Yukari yonlu trend egimi")
+                if expert == 1:
+                    reasons.append("Uzman sistemi AL sinyali verdi")
             else:  # SAT
                 if rsi > 70:
-                    reasons.append("RSI asiri alim bolgesinde (>70)")
-                if macd_hist < 0:
-                    reasons.append("MACD histogram negatife dondu")
-                if vol_ratio < 0.5:
-                    reasons.append("Hacim ortalamanin altinda — ilgi dusuk")
-                if daily_ret < -0.02:
-                    reasons.append("Gunluk getiri zayif (-%2 altinda)")
+                    reasons.append(f"RSI asiri alim bolgesinde ({rsi:.0f})")
+                if stoch_k > 80:
+                    reasons.append(f"Stochastic asiri alim ({stoch_k:.0f})")
+                if macd < 0:
+                    reasons.append("MACD negatif bolgede")
+                if depth > 0.85:
+                    reasons.append(f"Fiyat dirence yakin (Derinlik: {depth:.2f})")
+                if neckline < -0.01:
+                    reasons.append("Asagi yonlu trend egimi")
+                if vol_trend == 0:
+                    reasons.append("Hacim ortalamanin altinda")
+                if expert == -1:
+                    reasons.append("Uzman sistemi SAT sinyali verdi")
 
             if not reasons:
                 reasons.append("Genel teknik gorunum degerlendirmesi")

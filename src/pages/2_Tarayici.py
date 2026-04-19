@@ -342,13 +342,14 @@ with st.sidebar:
         watchlist = st.text_area("Hisse Kodları (Virgülle)", "THYAO, ASELS")
         active_tickers = [t.strip().upper() for t in watchlist.split(',') if t.strip()]
 
-    period_sel = st.selectbox("Zaman Periyodu", ["Günlük", "Haftalık", "Aylık", "4 Saatlik", "2 Saatlik", "1 Saatlik"])
+    period_sel = st.selectbox("Zaman Periyodu", ["Günlük", "Haftalık", "Aylık", "4 Saatlik", "2 Saatlik", "90 Dakikalık", "1 Saatlik"])
     yf_i, yf_p, label = "1d", "max", "Gunluk"
     resample_rule = None
     
-    if period_sel == "1 Saatlik": yf_i, yf_p, label = "60m", "730d", "Saatlik"
-    elif period_sel == "2 Saatlik": yf_i, yf_p, label, resample_rule = "60m", "730d", "2Saatlik", "2h"
-    elif period_sel == "4 Saatlik": yf_i, yf_p, label, resample_rule = "60m", "730d", "4Saatlik", "4h"
+    if period_sel == "1 Saatlik": yf_i, yf_p, label = "1h", "730d", "Saatlik"
+    elif period_sel == "90 Dakikalık": yf_i, yf_p, label = "90m", "60d", "90Dakika"
+    elif period_sel == "2 Saatlik": yf_i, yf_p, label, resample_rule = "1h", "730d", "2Saatlik", "2h"
+    elif period_sel == "4 Saatlik": yf_i, yf_p, label = "4h", "60d", "4Saatlik"
     elif period_sel == "Haftalık": yf_i, yf_p, label = "1wk", "max", "Haftalik"
     elif period_sel == "Aylık": yf_i, yf_p, label = "1mo", "max", "Aylik"
     

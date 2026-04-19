@@ -172,27 +172,37 @@ def calc_change(df, bars):
     except: return None
 
 def analyze_tech(df, selected_patterns, timeframe_label):
+    """Sadece secilen formasyonlari arar. Secilmeyen hicbir formasyon calistirilmaz."""
     res = []
     df_ana = df.copy()
     if 'Date' not in df_ana.columns: df_ana['Date'] = df_ana.index
     
-    terminal_analyzer.config['enabled_patterns'] = {
-        'tobo': "TOBO" in selected_patterns,
-        'obo': "OBO" in selected_patterns,
-        'cup': "Fincan Kulp" in selected_patterns,
-        'flag': "Boğa Bayrağı" in selected_patterns,
-        'flama': "Flama" in selected_patterns,
-    }
-    
     try:
         df_ind = terminal_analyzer.add_indicators(df_ana)
-        found = terminal_analyzer.detect_classic_patterns(df_ind, timeframe=timeframe_label)
+        found = []
+        
+        # Her formasyon icin AYRI AYRI calistir
+        if "TOBO" in selected_patterns:
+            zz = terminal_analyzer.calculate_zigzag(df_ind, deviation=0.04)
+            found.extend(terminal_analyzer.detect_tobo_zigzag(df_ind, zz, timeframe_label))
+        
+        if "OBO" in selected_patterns:
+            found.extend(terminal_analyzer.detect_obo_pattern(df_ind, timeframe_label))
+        
+        if "Fincan Kulp" in selected_patterns:
+            zz = terminal_analyzer.calculate_zigzag(df_ind, deviation=0.04)
+            found.extend(terminal_analyzer.detect_cup_zigzag(df_ind, zz, timeframe_label))
+        
+        if "Boğa Bayrağı" in selected_patterns:
+            found.extend(terminal_analyzer.detect_flag_pattern(df_ind, timeframe_label) if hasattr(terminal_analyzer, 'detect_flag_pattern') else [])
         
         if "High Tight Flag (Roket)" in selected_patterns:
             found.extend(terminal_analyzer.detect_high_tight_flag(df_ind))
+        
         if "RSI Uyumsuzluğu" in selected_patterns:
             zz = terminal_analyzer.calculate_zigzag(df_ind)
             found.extend(terminal_analyzer.detect_rsi_divergence(df_ind, zz, timeframe_label))
+        
         if "Mum Formasyonları" in selected_patterns:
             found.extend(terminal_analyzer.detect_candlestick_patterns(df_ind, timeframe_label))
             
@@ -206,7 +216,8 @@ def analyze_tech(df, selected_patterns, timeframe_label):
                 "status": f.get('status', ''),
                 "type": f.get('type', ''),
             })
-    except: pass
+    except Exception as e:
+        print(f"[TECH HATA] {e}")
     return res
 
 

@@ -344,47 +344,75 @@ with st.sidebar:
         prog_bar = st.progress(0)
         status_box = st.empty()
         curr_step = st.empty()
+        stat_counter = st.empty()
         
-        status_box.markdown("<div class='status-msg'>TERMINAL MEŞGUL | ANALİZ YAPILIYOR...</div>", unsafe_allow_html=True)
+        # ============================================================
+        # 1. GECIS: HIZLI FORMASYON TARAMASI (AI yok)
+        # ============================================================
+        status_box.markdown("<div class='status-msg'>1. GEÇİŞ | FORMASYON TARAMASI...</div>", unsafe_allow_html=True)
+        
+        candidates = []  # Formasyon bulunan hisseler
+        all_scanned = []  # Tum taranan hisseler (formasyon olmayanlar dahil)
         
         for idx, ticker in enumerate(active_tickers):
             prog_bar.progress((idx+1)/len(active_tickers))
-            curr_step.caption(f"Analiz ediliyor: {ticker}")
+            curr_step.caption(f"Formasyon taranıyor: {ticker} ({idx+1}/{len(active_tickers)})")
             
             try:
                 df = fetch_terminal_data(ticker, yf_i, yf_p)
                 if df is not None:
-                    # 1. Resample if needed
                     if resample_rule:
                         df = perform_resample(df, resample_rule)
                     
-                    # 2. Performance
+                    # Sadece formasyon tara (hızlı)
+                    tech = analyze_tech(df, patterns, label)
                     p1h = calc_change(df, 1)
                     p1m = calc_change(df, 22)
                     
-                    # 3. AI
-                    ai = get_ai_prediction(ticker, df)
-                    
-                    # 4. Tech
-                    tech = analyze_tech(df, patterns, label)
-                    
-                    st.session_state.results.append({
+                    item = {
                         "ticker": ticker,
                         "price": float(df.iloc[-1]['Close']),
                         "p1h": p1h, "p1m": p1m,
-                        "tech": tech, "ai": ai
-                    })
+                        "tech": tech,
+                        "ai": {"karar": "BEKLEMEDE", "guven_orani": 0, "tetikleyici_nedenler": []}
+                    }
                     
-                    # Grafik icin veriyi sakla
-                    st.session_state.chart_data[ticker] = df
-                else:
-                    pass
+                    if tech:  # Formasyon bulundu
+                        candidates.append(item)
+                        st.session_state.chart_data[ticker] = df
+                    
+                    all_scanned.append(item)
             except:
                 pass
+        
+        stat_counter.markdown(f"<div style='color:#00ff88; font-size:0.85rem;'>1. GEÇİŞ TAMAM: {len(active_tickers)} hisse tarandı → {len(candidates)} hissede formasyon bulundu</div>", unsafe_allow_html=True)
+        
+        # ============================================================
+        # 2. GECIS: SADECE FORMASYON BULUNANLARA AI ANALIZI
+        # ============================================================
+        if candidates:
+            status_box.markdown(f"<div class='status-msg'>2. GEÇİŞ | AI TEYİDİ ({len(candidates)} hisse)...</div>", unsafe_allow_html=True)
+            
+            for idx, item in enumerate(candidates):
+                ticker = item['ticker']
+                prog_bar.progress((idx+1)/len(candidates))
+                curr_step.caption(f"AI analiz: {ticker} ({idx+1}/{len(candidates)})")
                 
+                try:
+                    df = st.session_state.chart_data.get(ticker)
+                    if df is not None:
+                        ai = get_ai_prediction(ticker, df)
+                        item['ai'] = ai
+                except:
+                    item['ai'] = {"hata": "AI ANALIZ HATASI"}
+        
+        # Sonuclari kaydet: Oncelik formasyon bulunanlara
+        st.session_state.results = candidates + [s for s in all_scanned if s not in candidates]
+        
         status_box.empty()
         curr_step.empty()
         prog_bar.empty()
+        stat_counter.empty()
 
 # chart_data init
 if 'chart_data' not in st.session_state:

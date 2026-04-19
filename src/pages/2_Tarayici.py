@@ -201,12 +201,103 @@ def analyze_tech(df, selected_patterns, timeframe_label):
     except: pass
     return res
 
+
+def create_ticker_chart(ticker, df, tech_results):
+    """Her hisse icin mumlu grafik + hacim + formasyon isaretleri olusturur."""
+    try:
+        df_chart = df.copy()
+        if 'Date' not in df_chart.columns:
+            df_chart['Date'] = df_chart.index
+        df_chart = df_chart.tail(120)  # Son 120 bar
+        
+        fig = make_subplots(
+            rows=2, cols=1, shared_xaxes=True,
+            vertical_spacing=0.03,
+            row_heights=[0.75, 0.25]
+        )
+        
+        # Mum grafigi
+        fig.add_trace(go.Candlestick(
+            x=df_chart['Date'],
+            open=df_chart['Open'],
+            high=df_chart['High'],
+            low=df_chart['Low'],
+            close=df_chart['Close'],
+            name='Fiyat',
+            increasing_line_color='#00ff88',
+            decreasing_line_color='#ff4444',
+            increasing_fillcolor='#00ff88',
+            decreasing_fillcolor='#ff4444',
+        ), row=1, col=1)
+        
+        # SMA 20 ve 50
+        if len(df_chart) >= 20:
+            sma20 = df_chart['Close'].rolling(20).mean()
+            fig.add_trace(go.Scatter(
+                x=df_chart['Date'], y=sma20,
+                name='SMA 20', line=dict(color='#ffbf00', width=1),
+            ), row=1, col=1)
+        if len(df_chart) >= 50:
+            sma50 = df_chart['Close'].rolling(50).mean()
+            fig.add_trace(go.Scatter(
+                x=df_chart['Date'], y=sma50,
+                name='SMA 50', line=dict(color='#00f2ff', width=1),
+            ), row=1, col=1)
+        
+        # Formasyon isaretleri (son barda marker)
+        if tech_results:
+            last_date = df_chart['Date'].iloc[-1]
+            last_high = df_chart['High'].iloc[-1]
+            pattern_names = [t['Name'] for t in tech_results[:3]]
+            label_text = " | ".join(pattern_names)
+            
+            fig.add_trace(go.Scatter(
+                x=[last_date],
+                y=[last_high * 1.02],
+                mode='markers+text',
+                marker=dict(color='#00f2ff', size=12, symbol='triangle-down'),
+                text=[label_text],
+                textposition='top center',
+                textfont=dict(color='#00f2ff', size=10),
+                name='Formasyon',
+                showlegend=False,
+            ), row=1, col=1)
+        
+        # Hacim
+        colors = ['#00ff88' if c >= o else '#ff4444' 
+                  for c, o in zip(df_chart['Close'], df_chart['Open'])]
+        fig.add_trace(go.Bar(
+            x=df_chart['Date'],
+            y=df_chart['Volume'],
+            name='Hacim',
+            marker_color=colors,
+            opacity=0.5,
+        ), row=2, col=1)
+        
+        fig.update_layout(
+            height=350,
+            template='plotly_dark',
+            paper_bgcolor='#1a1c23',
+            plot_bgcolor='#0e1117',
+            margin=dict(l=10, r=10, t=10, b=10),
+            xaxis_rangeslider_visible=False,
+            showlegend=False,
+            font=dict(family='Roboto Mono', size=10, color='#94a3b8'),
+        )
+        fig.update_xaxes(gridcolor='#2d3748', showgrid=True)
+        fig.update_yaxes(gridcolor='#2d3748', showgrid=True)
+        
+        return fig
+    except Exception as e:
+        print(f"[GRAFIK HATA] {ticker}: {e}")
+        return None
+
+
 # --- Header ---
 c_title, c_clock = st.columns([3, 1])
 with c_title:
     st.markdown("<div class='brand-header'>BORSANEURON | TERMINAL</div>", unsafe_allow_html=True)
 with c_clock:
-    # Drifting clock in sidebar style
     st.markdown(f"<div style='text-align:right; color:#00f2ff; font-family:Roboto Mono; font-weight:bold;'>SISTEM SAATI: {get_current_tr_time()}</div>", unsafe_allow_html=True)
 
 # --- Sidebar ---
@@ -234,8 +325,13 @@ with st.sidebar:
     
     patterns = st.multiselect("Formasyonlar", ["TOBO", "OBO", "Fincan Kulp", "Boğa Bayrağı", "Flama", "High Tight Flag (Roket)", "RSI Uyumsuzluğu", "Mum Formasyonları"], default=["Boğa Bayrağı", "TOBO", "Mum Formasyonları"])
     
+    st.markdown("---")
+    show_only_patterns = st.checkbox("Sadece Formasyon Bulunanlar", value=False)
+    show_charts = st.checkbox("Grafikleri Göster", value=True)
+    
     if st.button("TERMINAL TARAMASINI BAŞLAT", type="primary", use_container_width=True):
         st.session_state.results = []
+        st.session_state.chart_data = {}
         
         prog_bar = st.progress(0)
         status_box = st.empty()
@@ -250,13 +346,13 @@ with st.sidebar:
             try:
                 df = fetch_terminal_data(ticker, yf_i, yf_p)
                 if df is not None:
-                    # 1. Resample if 4H
+                    # 1. Resample if needed
                     if resample_rule:
                         df = perform_resample(df, resample_rule)
                     
                     # 2. Performance
-                    p1h = calc_change(df, 1) # ~1 bar hourly/daily etc
-                    p1m = calc_change(df, 22) # ~1 month if daily
+                    p1h = calc_change(df, 1)
+                    p1m = calc_change(df, 22)
                     
                     # 3. AI
                     ai = get_ai_prediction(ticker, df)
@@ -270,26 +366,42 @@ with st.sidebar:
                         "p1h": p1h, "p1m": p1m,
                         "tech": tech, "ai": ai
                     })
+                    
+                    # Grafik icin veriyi sakla
+                    st.session_state.chart_data[ticker] = df
                 else:
-                    pass # Silent skip
+                    pass
             except:
-                pass # Silent skip
+                pass
                 
         status_box.empty()
         curr_step.empty()
         prog_bar.empty()
 
+# chart_data init
+if 'chart_data' not in st.session_state:
+    st.session_state.chart_data = {}
+
 # --- Content ---
 if not st.session_state.results:
     st.markdown("<div style='text-align:center; padding:100px; color:#555;'>VERI BAĞLANTISI BEKLENIYOR | LÜTFEN TARAMAYI BAŞLATIN</div>", unsafe_allow_html=True)
 else:
-    for item in st.session_state.results:
+    # Filtre uygula
+    display_results = st.session_state.results
+    if show_only_patterns:
+        display_results = [r for r in display_results if r['tech']]
+        st.markdown(f"<div style='color:#ffbf00; font-size:0.85rem; margin-bottom:10px;'>FILTRE AKTIF: {len(display_results)} / {len(st.session_state.results)} hisse formasyon mevcut</div>", unsafe_allow_html=True)
+    
+    # Sonuc sayisi
+    st.markdown(f"<div style='color:#94a3b8; font-size:0.8rem; margin-bottom:15px;'>TOPLAM: {len(display_results)} HISSE | TARAMA: {scope} | PERIYOT: {period_sel}</div>", unsafe_allow_html=True)
+    
+    for item in display_results:
         with st.container():
             st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
             
             l_col, r_col = st.columns([3, 1])
             with l_col:
-                st.markdown(f"<span style='font-size:1.8rem; font-weight:700; color:#00f2ff;'>{item['ticker']}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='font-size:1.8rem; font-weight:700; color:#00f2ff;'>{item['ticker']}</span>  <span style='color:#94a3b8; font-size:1rem;'>₺{item['price']:.2f}</span>", unsafe_allow_html=True)
                 
                 # Stats
                 v1h = f"%{item['p1h']:.2f}" if item['p1h'] is not None else "VERI YOK"
@@ -315,16 +427,88 @@ else:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Tetikleyici nedenler
                     nedenler = ai.get('tetikleyici_nedenler', [])
                     if nedenler:
                         neden_html = ''.join([f"<div style='color:#94a3b8; font-size:0.7rem; margin-left:4px;'>- {n}</div>" for n in nedenler[:3]])
                         st.markdown(neden_html, unsafe_allow_html=True)
             
+            # Formasyon badge'leri
             if item['tech']:
                 st.markdown("<div style='margin-top:10px; border-top:1px solid #2d3748; padding-top:10px;'>", unsafe_allow_html=True)
                 for t in item['tech']:
                     st.markdown(f"<div><span style='background:#00f2ff; color:#0e1117; font-size:0.75rem; font-weight:bold; padding:2px 8px; border-radius:2px;'>{t['Name']}</span> <span style='color:#94a3b8; font-size:0.85rem; margin-left:10px;'>{t['Desc']}</span></div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
             
+            # Grafik
+            if show_charts and item['ticker'] in st.session_state.chart_data:
+                chart_fig = create_ticker_chart(
+                    item['ticker'],
+                    st.session_state.chart_data[item['ticker']],
+                    item['tech']
+                )
+                if chart_fig:
+                    st.plotly_chart(chart_fig, use_container_width=True, key=f"chart_{item['ticker']}")
+            
             st.markdown("</div>", unsafe_allow_html=True)
+    
+    # ======================================================================
+    # OZET TABLOSU (En Altta)
+    # ======================================================================
+    st.markdown("---")
+    st.markdown("<div class='brand-header' style='font-size:1.2rem; margin-top:20px;'>TARAMA OZET TABLOSU</div>", unsafe_allow_html=True)
+    
+    table_rows = []
+    for item in st.session_state.results:
+        ai = item['ai']
+        karar = ai.get('karar', '-')
+        conf = ai.get('guven_orani', 0)
+        nedenler = ai.get('tetikleyici_nedenler', [])
+        pattern_names = [t['Name'] for t in item['tech']] if item['tech'] else []
+        
+        table_rows.append({
+            "Hisse": item['ticker'],
+            "Fiyat (₺)": round(item['price'], 2),
+            "1P Değişim (%)": round(item['p1h'], 2) if item['p1h'] else None,
+            "1A Değişim (%)": round(item['p1m'], 2) if item['p1m'] else None,
+            "AI Karar": karar,
+            "Güven (%)": round(conf * 100, 1) if conf else 0,
+            "Formasyonlar": ", ".join(pattern_names) if pattern_names else "-",
+            "AI Nedenleri": " | ".join(nedenler[:2]) if nedenler else "-",
+        })
+    
+    df_table = pd.DataFrame(table_rows)
+    
+    # Renklendirme
+    def color_karar(val):
+        if val == 'AL': return 'background-color: #00ff88; color: #0e1117; font-weight: bold'
+        elif val == 'SAT': return 'background-color: #ff4444; color: white; font-weight: bold'
+        return ''
+    
+    def color_change(val):
+        if val is None: return ''
+        if val > 0: return 'color: #00ff88'
+        elif val < 0: return 'color: #ff4444'
+        return ''
+    
+    styled = df_table.style.applymap(color_karar, subset=['AI Karar'])
+    styled = styled.applymap(color_change, subset=['1P Değişim (%)', '1A Değişim (%)'])
+    styled = styled.set_properties(**{
+        'background-color': '#1a1c23',
+        'color': '#e2e8f0',
+        'border-color': '#2d3748',
+        'font-size': '0.8rem',
+    })
+    
+    st.dataframe(df_table, use_container_width=True, height=min(len(df_table)*38 + 40, 600))
+    
+    # Formasyon ozeti
+    pattern_count = sum(1 for r in st.session_state.results if r['tech'])
+    al_count = sum(1 for r in st.session_state.results if r['ai'].get('karar') == 'AL')
+    sat_count = sum(1 for r in st.session_state.results if r['ai'].get('karar') == 'SAT')
+    
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Toplam Hisse", len(st.session_state.results))
+    c2.metric("Formasyon Bulunan", pattern_count)
+    c3.metric("AI: AL", al_count)
+    c4.metric("AI: SAT", sat_count)
+

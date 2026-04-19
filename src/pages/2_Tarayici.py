@@ -126,7 +126,7 @@ def perform_resample(df, rule='4H'):
     except: return df
 
 @st.cache_data(ttl=300)
-def fetch_terminal_data(ticker, interval, period):
+def fetch_terminal_data(ticker, interval, period, resample=None):
     try:
         symbol = f"{ticker}.IS"
         df = yf.download(symbol, period=period, interval=interval, progress=False)
@@ -136,6 +136,16 @@ def fetch_terminal_data(ticker, interval, period):
         
         df = df.rename(columns={'Open':'Open', 'High':'High', 'Low':'Low', 'Close':'Close', 'Volume':'Volume'})
         df = df.ffill().dropna()
+        
+        # Resample (2h, 4h) — cache'lenir, her hisse icin 1 kez
+        if resample:
+            if 'Date' not in df.columns: df['Date'] = df.index
+            df.set_index('Date', inplace=True)
+            agg = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}
+            df = df.resample(resample).agg(agg).dropna()
+            df.reset_index(inplace=True)
+            if len(df) < 50: return None
+        
         return df
     except Exception as e:
         print(f"[HATA] {ticker}: {e}")
@@ -370,10 +380,8 @@ with st.sidebar:
             curr_step.caption(f"Formasyon taranıyor: {ticker} ({idx+1}/{len(active_tickers)})")
             
             try:
-                df = fetch_terminal_data(ticker, yf_i, yf_p)
+                df = fetch_terminal_data(ticker, yf_i, yf_p, resample_rule)
                 if df is not None:
-                    if resample_rule:
-                        df = perform_resample(df, resample_rule)
                     
                     # Sadece formasyon tara (hızlı)
                     tech = analyze_tech(df, patterns, label)

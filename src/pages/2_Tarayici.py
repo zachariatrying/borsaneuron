@@ -197,7 +197,15 @@ def analyze_tech(df, selected_patterns, timeframe_label):
             found.extend(terminal_analyzer.detect_candlestick_patterns(df_ind, timeframe_label))
             
         for f in found:
-            res.append({"Name": f.get('name', 'Bilinmeyen'), "Desc": f.get('desc', '')})
+            res.append({
+                "Name": f.get('name', 'Bilinmeyen'),
+                "Desc": f.get('desc', ''),
+                "target": f.get('target', None),
+                "stop": f.get('stop', None),
+                "score": f.get('score', 0),
+                "status": f.get('status', ''),
+                "type": f.get('type', ''),
+            })
     except: pass
     return res
 
@@ -326,7 +334,7 @@ with st.sidebar:
     patterns = st.multiselect("Formasyonlar", ["TOBO", "OBO", "Fincan Kulp", "Boğa Bayrağı", "Flama", "High Tight Flag (Roket)", "RSI Uyumsuzluğu", "Mum Formasyonları"], default=["Boğa Bayrağı", "TOBO", "Mum Formasyonları"])
     
     st.markdown("---")
-    show_only_patterns = st.checkbox("Sadece Formasyon Bulunanlar", value=False)
+    filter_pattern = st.selectbox("Sonuc Filtresi", ["Tümü", "Sadece Formasyon Bulunanlar"] + patterns, index=0)
     show_charts = st.checkbox("Grafikleri Göster", value=True)
     
     if st.button("TERMINAL TARAMASINI BAŞLAT", type="primary", use_container_width=True):
@@ -388,12 +396,28 @@ if not st.session_state.results:
 else:
     # Filtre uygula
     display_results = st.session_state.results
-    if show_only_patterns:
+    if filter_pattern == "Sadece Formasyon Bulunanlar":
         display_results = [r for r in display_results if r['tech']]
-        st.markdown(f"<div style='color:#ffbf00; font-size:0.85rem; margin-bottom:10px;'>FILTRE AKTIF: {len(display_results)} / {len(st.session_state.results)} hisse formasyon mevcut</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='color:#ffbf00; font-size:0.85rem; margin-bottom:10px;'>FILTRE: Formasyon bulunan {len(display_results)} / {len(st.session_state.results)} hisse</div>", unsafe_allow_html=True)
+    elif filter_pattern not in ["Tümü", "Sadece Formasyon Bulunanlar"]:
+        # Secilen formasyona gore filtrele
+        def has_pattern(item, pat_name):
+            for t in item.get('tech', []):
+                n = t.get('Name', '').upper()
+                if pat_name == "TOBO" and "TOBO" in n: return True
+                if pat_name == "OBO" and "OBO" in n and "TOBO" not in n: return True
+                if pat_name == "Fincan Kulp" and ("CUP" in n or "FINCAN" in n or "CANAK" in n): return True
+                if pat_name == "Boğa Bayrağı" and ("FLAG" in n or "BAYRAK" in n or "BAYRA" in n): return True
+                if pat_name == "Flama" and "FLAMA" in n: return True
+                if pat_name == "High Tight Flag (Roket)" and ("ROKET" in n or "ROCKET" in n or "HTF" in n or "HIGH TIGHT" in n): return True
+                if pat_name == "RSI Uyumsuzluğu" and ("RSI" in n or "DIVERGEN" in n): return True
+                if pat_name == "Mum Formasyonları" and any(x in n for x in ["ENGULF", "DOJI", "HAMMER", "YUTAN", "MUM", "BULLISH", "BEARISH", "MORNING", "EVENING"]): return True
+            return False
+        display_results = [r for r in display_results if has_pattern(r, filter_pattern)]
+        st.markdown(f"<div style='color:#ffbf00; font-size:0.85rem; margin-bottom:10px;'>FILTRE: {filter_pattern} — {len(display_results)} hisse bulundu</div>", unsafe_allow_html=True)
     
     # Sonuc sayisi
-    st.markdown(f"<div style='color:#94a3b8; font-size:0.8rem; margin-bottom:15px;'>TOPLAM: {len(display_results)} HISSE | TARAMA: {scope} | PERIYOT: {period_sel}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='color:#94a3b8; font-size:0.8rem; margin-bottom:15px;'>GÖSTERILEN: {len(display_results)} HISSE | TARAMA: {scope} | PERIYOT: {period_sel}</div>", unsafe_allow_html=True)
     
     for item in display_results:
         with st.container():
@@ -432,11 +456,25 @@ else:
                         neden_html = ''.join([f"<div style='color:#94a3b8; font-size:0.7rem; margin-left:4px;'>- {n}</div>" for n in nedenler[:3]])
                         st.markdown(neden_html, unsafe_allow_html=True)
             
-            # Formasyon badge'leri
+            # Formasyon badge'leri + hedef fiyat
             if item['tech']:
                 st.markdown("<div style='margin-top:10px; border-top:1px solid #2d3748; padding-top:10px;'>", unsafe_allow_html=True)
                 for t in item['tech']:
-                    st.markdown(f"<div><span style='background:#00f2ff; color:#0e1117; font-size:0.75rem; font-weight:bold; padding:2px 8px; border-radius:2px;'>{t['Name']}</span> <span style='color:#94a3b8; font-size:0.85rem; margin-left:10px;'>{t['Desc']}</span></div>", unsafe_allow_html=True)
+                    badge_html = f"<span style='background:#00f2ff; color:#0e1117; font-size:0.75rem; font-weight:bold; padding:2px 8px; border-radius:2px;'>{t['Name']}</span>"
+                    desc_html = f"<span style='color:#94a3b8; font-size:0.85rem; margin-left:10px;'>{t['Desc']}</span>"
+                    
+                    # Hedef fiyat ve stop
+                    target_html = ""
+                    if t.get('target'):
+                        target_val = t['target']
+                        curr = item['price']
+                        pot_pct = ((target_val - curr) / curr) * 100 if curr > 0 else 0
+                        target_html += f" <span style='color:#00ff88; font-size:0.8rem; font-weight:bold; margin-left:8px;'>HEDEF: ₺{target_val:.2f} (%{pot_pct:+.1f})</span>"
+                    if t.get('stop'):
+                        stop_val = t['stop']
+                        target_html += f" <span style='color:#ff4444; font-size:0.75rem; margin-left:8px;'>STOP: ₺{stop_val:.2f}</span>"
+                    
+                    st.markdown(f"<div>{badge_html} {desc_html}{target_html}</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
             
             # Grafik
@@ -465,15 +503,27 @@ else:
         nedenler = ai.get('tetikleyici_nedenler', [])
         pattern_names = [t['Name'] for t in item['tech']] if item['tech'] else []
         
+        # En yuksek hedef fiyati bul
+        best_target = None
+        best_stop = None
+        for t in (item['tech'] or []):
+            if t.get('target') and (best_target is None or t['target'] > best_target):
+                best_target = t['target']
+            if t.get('stop') and (best_stop is None or t['stop'] > best_stop):
+                best_stop = t['stop']
+        
+        pot_pct = round(((best_target - item['price']) / item['price']) * 100, 1) if best_target and item['price'] > 0 else None
+        
         table_rows.append({
             "Hisse": item['ticker'],
             "Fiyat (₺)": round(item['price'], 2),
-            "1P Değişim (%)": round(item['p1h'], 2) if item['p1h'] else None,
-            "1A Değişim (%)": round(item['p1m'], 2) if item['p1m'] else None,
-            "AI Karar": karar,
+            "Hedef (₺)": round(best_target, 2) if best_target else "-",
+            "Potansiyel (%)": pot_pct if pot_pct else "-",
+            "Stop (₺)": round(best_stop, 2) if best_stop else "-",
+            "1P (%)":  round(item['p1h'], 2) if item['p1h'] else None,
+            "AI": karar,
             "Güven (%)": round(conf * 100, 1) if conf else 0,
             "Formasyonlar": ", ".join(pattern_names) if pattern_names else "-",
-            "AI Nedenleri": " | ".join(nedenler[:2]) if nedenler else "-",
         })
     
     df_table = pd.DataFrame(table_rows)
@@ -490,8 +540,8 @@ else:
         elif val < 0: return 'color: #ff4444'
         return ''
     
-    styled = df_table.style.applymap(color_karar, subset=['AI Karar'])
-    styled = styled.applymap(color_change, subset=['1P Değişim (%)', '1A Değişim (%)'])
+    styled = df_table.style.applymap(color_karar, subset=['AI'])
+    styled = styled.applymap(color_change, subset=['1P (%)'])
     styled = styled.set_properties(**{
         'background-color': '#1a1c23',
         'color': '#e2e8f0',

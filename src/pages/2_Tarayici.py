@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 PROJECT_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, '..'))
+import analyzer
+import importlib
+importlib.reload(analyzer)
 from analyzer import Analyzer
 from live_inference_engine import LiveInferenceEngine
 
@@ -84,6 +87,7 @@ TERMINAL_CSS = """
 st.markdown(TERMINAL_CSS, unsafe_allow_html=True)
 
 # AI Motor (Lokal - Egitilmis Model)
+st.cache_resource.clear()
 @st.cache_resource
 def load_analyzer():
     return Analyzer()
@@ -588,8 +592,14 @@ else:
         elif val < 0: return 'color: #ff4444'
         return ''
     
-    styled = df_table.style.applymap(color_karar, subset=['AI'])
-    styled = styled.applymap(color_change, subset=['1P (%)'])
+    try:
+        styled = df_table.style.map(color_karar, subset=['AI'])
+        styled = styled.map(color_change, subset=['1P (%)'])
+    except AttributeError:
+        # Eski pandas versiyonları için
+        styled = df_table.style.applymap(color_karar, subset=['AI'])
+        styled = styled.applymap(color_change, subset=['1P (%)'])
+    
     styled = styled.set_properties(**{
         'background-color': '#1a1c23',
         'color': '#e2e8f0',

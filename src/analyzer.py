@@ -566,6 +566,8 @@ class Analyzer:
             curr_idx = len(close) - 1
             neckline_at_curr = (slope * curr_idx) + intercept
             
+            if neckline_at_curr <= 0: continue # Geçersiz eğim koruması
+            
             # Also calculate neckline value at the breakout point (roughly)
             # For target calculation, we can use the head depth relative to the slanted line at Head Index
             neckline_at_head = (slope * p3['idx']) + intercept
@@ -613,6 +615,7 @@ class Analyzer:
 
             # --- OUTPUT GENERATION ---
             target = neckline_at_curr + depth
+            if target <= 0: continue
             # Stop is slightly below RS Low
             stop = rs_val * 0.99
             
@@ -624,8 +627,11 @@ class Analyzer:
             # Dynamic Strategy
             strategy = self.get_strategy_text(status, curr_price, neckline_at_curr, target, stop, "TOBO")
             if status == "confirmed":
-                dist_pct = (curr_price - neckline_at_curr) / neckline_at_curr
-                if dist_pct > 0.15: continue # Too late
+                # Sadece pozitif neckline durumunda oran hesapla
+                if neckline_at_curr > 0:
+                    dist_pct = (curr_price - neckline_at_curr) / neckline_at_curr
+                    if dist_pct > 0.15: continue # Too late
+                else: continue
                 
             # Time Estimate
             width = p5['idx'] - p1['idx']
@@ -775,6 +781,7 @@ class Analyzer:
             
             curr_idx = len(close) - 1
             neckline_at_curr = (neck_slope * curr_idx) + neck_intercept
+            if neckline_at_curr <= 0: continue # Geçersiz eğim koruması
             
             neckline_at_head = (neck_slope * p3['idx']) + neck_intercept
             depth = abs(h_val - neckline_at_head)
@@ -811,6 +818,7 @@ class Analyzer:
             
             # Targets (Downside)
             target = neckline_at_curr - depth
+            if target <= 0: target = 0.01  # Fiyat 0'ın altına düşemez
             stop = rs_val * 1.01 # Stop above RS
             
             # Strategy Text

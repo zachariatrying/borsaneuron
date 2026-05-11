@@ -171,7 +171,7 @@ with tab2:
     st.plotly_chart(fig2, use_container_width=True)
     
     st.markdown("#### Küme Merkezleri (Ortalama Değerler)")
-    st.dataframe(ticker_stats.groupby('Cluster')[['ATR_14', 'Max_Drawdown_15D', 'Max_Gain_15D', 'RSI_14']].mean().style.background_gradient(cmap='viridis'))
+    st.dataframe(ticker_stats.groupby('Cluster')[['ATR_14', 'Max_Drawdown_15D', 'Max_Gain_15D', 'RSI_14']].mean())
     
     st.info("💡 **Stratejik Kural (If-Else):** Eğer hisse Yüksek Kazanç/Yüksek Risk kümesindeyse (Cluster 0) -> Sıkı STOP LOSS kullan. Eğer Düşük Risk/Dengeli kümedeyse (Cluster 2) -> Uzun vadeli ANN tahminine güven.")
 

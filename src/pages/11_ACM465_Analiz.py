@@ -62,7 +62,11 @@ st.markdown("<div class='brand-header'>ACM 465 | VERİ MADENCİLİĞİ İŞGÖR�
 # --- Veri Yükleme ---
 @st.cache_data
 def load_data():
-    dataset_path = r"C:\Users\ibrah\.gemini\antigravity\scratch\bist_ai_dataset_real_30cols.csv"
+    # Use relative path so it works on Streamlit Cloud
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up two levels from src/pages to root
+    dataset_path = os.path.join(current_dir, '..', '..', 'bist_ai_dataset_real_30cols.csv')
+    
     if os.path.exists(dataset_path):
         return pd.read_csv(dataset_path)
     return None

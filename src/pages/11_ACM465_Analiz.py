@@ -86,8 +86,19 @@ tab1, tab2, tab3, tab4 = st.tabs(["1. Model Karşılaştırması", "2. Hisse Seg
 # TAB 1: MODEL KARŞILAŞTIRMASI & FEATURE IMPORTANCE
 # ==========================================
 with tab1:
-    st.markdown("### Algoritma Performans Analizi (Regresyon / Sınıflandırma)")
-    st.markdown("Model: BIST Hisseleri için **Target_T5 (5 Günlük Getiri Hedefi)** tahmini.")
+    st.markdown("### Algoritma Performans Analizi (Sınıflandırma)")
+    st.markdown("Bu bölümde Geleneksel Teknik Analiz (TA) indikatörleri Makine Öğrenmesi modellerine girdi olarak verilerek hisselerin **5 Günlük Getiri Yönü (Target_T5)** tahmin edilmektedir.")
+    
+    with st.expander("📌 Teknik Analiz ve Model Parametre Detayları", expanded=True):
+        st.markdown('''
+        * **Kullanılan Girdiler (Features):** `RSI_14` (Aşırı Alım/Satım), `MACD` (Trend Yönü), `ATR_14` (Volatilite), `Stoch_K`, ve *Uzman Sistem Sinyali* (OBO, TOBO, Bayrak gibi formasyonların mantıksal varlığı).
+        * **Model 1: Random Forest Classifier:**
+            * Karar ağaçlarının (Decision Trees) topluluk (ensemble) versiyonudur. Finansal verilerdeki gürültüye karşı çok dirençlidir.
+            * *Parametreler:* `n_estimators=100` (100 farklı ağaç), `criterion='gini'` (Bölünme kalitesi), `random_state=42`.
+        * **Model 2: Yapay Sinir Ağı (MLP Classifier):**
+            * İnsan beyninin çalışma yapısını taklit eden Derin Öğrenme mimarisi.
+            * *Parametreler:* `hidden_layer_sizes=(64, 32)` (2 gizli katman), `activation='relu'`, `solver='adam'`, `max_iter=200`.
+        ''')
     
     features = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
     df_ml = df.dropna(subset=features + ['Target_T5']).copy()
@@ -142,7 +153,16 @@ with tab1:
 # ==========================================
 with tab2:
     st.markdown("### K-Means ile Hisse Profili Kümeleme")
-    st.markdown("Hisseleri **Volatilite (ATR), Risk (Max Drawdown) ve Potansiyel (Max Gain)** metriklerine göre kümeliyoruz.")
+    
+    with st.expander("📌 Metodoloji ve Teknik Analiz İlişkisi", expanded=True):
+        st.markdown('''
+        Hisseler, geçmiş 15 günlük hareketlerine göre **K-Means Algoritması** kullanılarak kümelenmektedir (`init='k-means++'`).  
+        Uzaydaki uzaklık hesabı Öklid Mesafesine göre yapılarak hisseler birbirine en yakın gruplara (Cluster) ayrılır.
+        * **Teknik Analiz Uyarlaması:** 
+            * `ATR_14`: Volatiliteyi (High-Beta vs Low-Beta) belirler. Yüksek ATR'li kümelerde *Bayrak (Flag)* veya *Kırılım (Breakout)* stratejileri iyi çalışır.
+            * `RSI_14` & `Max_Drawdown`: Hissenin ne kadar oversold (aşırı satılmış) ve riskli olduğunu gösterir. Bu kümedeki hisselerde *Çift Dip* veya *TOBO* formasyonları aranmalıdır.
+        * Yüksek boyutlu veriler, **PCA (Temel Bileşen Analizi)** ile 2 boyuta indirgenip aşağıda görselleştirilmiştir.
+        ''')
     
     k_clusters = st.slider("Küme Sayısı (K)", min_value=2, max_value=6, value=3)
     
@@ -180,7 +200,13 @@ with tab2:
 # ==========================================
 with tab3:
     st.markdown("### Prophet ile Gelecek Fiyat Tahmini")
-    st.markdown("Meta (Facebook) Prophet algoritması ile zaman serisi trendini ve mevsimselliği modelleyerek gelecek projeksiyonu oluşturuyoruz.")
+    
+    with st.expander("📌 Algoritma Mantığı: Prophet ve Trend Analizi", expanded=True):
+        st.markdown('''
+        * **Meta Prophet Algoritması:** Zaman serisi verilerini tahmin etmek için tasarlanmış, toplanabilir (additive) bir regresyon modelidir. 
+        * *Parametreler:* `yearly_seasonality=True` (Yıllık döngüleri baz alır), `daily_seasonality=False` (Borsa geceleri kapalı olduğu için).
+        * **Teknik Analizdeki Yeri:** Klasik Teknik Analiz anlık kırılımları (örneğin Fincan-Kulp kırılımı) verir. Ancak Prophet, kırılımın gerçekleştiği dönemin **Makro Trendini** söyler. Bir hissede TOBO formasyonu varsa ve Prophet grafiği yukarı yönlü sert bir trend çiziyorsa, bu işlem "Yüksek Olasılıklı (High Probability Setup)" olarak işaretlenir.
+        ''')
     
     if Prophet is None:
         st.error("Prophet kütüphanesi kurulu değil!")
@@ -226,7 +252,14 @@ with tab3:
 # ==========================================
 with tab4:
     st.markdown("### Finansal Backtest: Model Para Kazandırıyor mu?")
-    st.markdown("Makine Öğrenmesi (Random Forest) sinyalleri kullanılarak **100.000 TL**'lik bir başlangıç portföyü ile tarihsel test simülasyonu (Out-of-sample).")
+    
+    with st.expander("📌 Backtest (Geriye Dönük Test) Parametreleri ve Çıkarımlar", expanded=True):
+        st.markdown('''
+        * **Veri Sızıntısı (Data Leakage) Koruması:** Veriler rastgele karıştırılmadan **Kronolojik** olarak (%80 Train, %20 Test) bölünmüştür. Model geçmişi öğrenip, *hiç görmediği* gelecekte test edilir (Out-of-sample).
+        * **Test Stratejisi:** Random Forest modeli `Target_T5 == 1` (Yükselecek) öngörüsünde bulunduğunda hisse alınır.
+        * **Muhafazakâr Kâr Alımı:** Simülasyonda hissenin yaptığı maksimum primin (`Max_Gain`) hepsini değil, gerçek hayat slippage (kayma) ve komisyon payı düşülerek **Sadece %30'unun** yakalandığı varsayılmıştır. Yanlış sinyallerde ise maksimum düşüşün (`Max_Drawdown`) tam %50'si zarar olarak yazılır.
+        * **Karşılaştırma Ölçütü (Benchmark):** Piyasada sürekli kalan (Buy & Hold) bir yatırımcının elde edeceği varsayımsal endeks getirisiyle yapay zeka modelinin ürettiği kümülatif getiri karşılaştırılmıştır.
+        ''')
     
     if st.button("Backtest Simülasyonunu Başlat", key="backtest_btn"):
         with st.spinner("Geçmiş veriler üzerinde alım/satım simüle ediliyor..."):

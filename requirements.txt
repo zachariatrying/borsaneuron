@@ -11,3 +11,4 @@ requests
 joblib
 scipy
 pytz
+prophet

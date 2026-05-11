@@ -60,15 +60,17 @@ st.markdown(TERMINAL_CSS, unsafe_allow_html=True)
 st.markdown("<div class='brand-header'>ACM 465 | VERİ MADENCİLİĞİ İŞGÖRÜLERİ</div>", unsafe_allow_html=True)
 
 # --- Veri Yükleme ---
-@st.cache_data
+@st.cache_data(ttl=3600)
 def load_data():
-    # Use relative path so it works on Streamlit Cloud
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Go up two levels from src/pages to root
-    dataset_path = os.path.join(current_dir, '..', '..', 'bist_ai_dataset_real_30cols.csv')
+    paths = [
+        "bist_ai_dataset_real_30cols.csv",  # Streamlit default root
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'bist_ai_dataset_real_30cols.csv'),
+        "/mount/src/borsaneuron/bist_ai_dataset_real_30cols.csv" # Streamlit cloud hardcoded
+    ]
     
-    if os.path.exists(dataset_path):
-        return pd.read_csv(dataset_path)
+    for p in paths:
+        if os.path.exists(p):
+            return pd.read_csv(p)
     return None
 
 df = load_data()

@@ -81,13 +81,14 @@ if df is None:
     st.stop()
 
 # Sekmeler
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "1. Veri Keşfi",
     "2. Korelasyon & Eleme",
     "3. K-Means & PCA",
     "4. Model Karşılaştırması",
     "5. Zaman Serisi (Prophet)",
-    "6. Finansal Backtest"
+    "6. Finansal Backtest",
+    "7. Hisse Sorgula"
 ])
 
 # ==========================================
@@ -355,11 +356,22 @@ with tab5:
 with tab6:
     st.markdown("### Finansal Backtest: Model Para Kazandırıyor mu?")
     
-    with st.expander("📌 Backtest Parametreleri", expanded=True):
+    with st.expander("📌 Karar Mekanizması: Model Nasıl AL/SAT Kararı Veriyor?", expanded=True):
         st.markdown('''
-        * **Kronolojik Bölme:** %80 Train, %20 Test (Data Leakage koruması).
-        * **Strateji:** RF modeli "Yükselecek" dediğinde al, aksi halde bekle.
-        * **Muhafazakâr Varsayım:** Kazancın %30'u yakalanır, kayıpların %50'si yansır.
+        **Adım 1 — Veri Hazırlığı:** Her hisse için 8 teknik indikatör hesaplanır:
+        `RSI_14`, `MACD`, `ATR_14`, `Stoch_K`, `Volume_Trend`, `Depth_Ratio`, `Neckline_Slope`, `Expert_Signal`
+        
+        **Adım 2 — Kronolojik Bölme:** Verinin ilk %80'i (2019-2023) ile model eğitilir. Son %20'si (2023-2024) hiç görmediği test verisidir.
+        
+        **Adım 3 — Karar Kuralı:**
+        - Model her gün her hisse için **"5 gün sonra fiyat yükselecek mi?"** sorusuna cevap verir.
+        - Cevap `1` (Evet) ise → **AL sinyali** verilir, o hisse portföye eklenir.
+        - Cevap `0` (Hayır) ise → **BEKLE**, işlem yapılmaz, sermaye korunur.
+        
+        **Adım 4 — Kâr/Zarar Hesabı:**
+        - Doğru tahmin: Hissenin 15 günlük max kazancının **%30'u** yakalanır (muhafazakâr).
+        - Yanlış tahmin: Hissenin 15 günlük max düşüşünün **%50'si** zarar olarak yansır.
+        - Bu oranlar komisyon, slippage ve gerçek hayat koşullarını simüle eder.
         ''')
     
     if st.button("Backtest Başlat", key="backtest_btn"):
@@ -406,3 +418,120 @@ with tab6:
             col1.metric("Başlangıç", "100,000 ₺")
             col2.metric("Bitiş", f"{final_capital:,.2f} ₺", f"%{net_profit:.1f}")
             col3.metric("Win Rate", f"%{win_rate:.1f}")
+            
+            # İşlem Logu
+            with st.expander("İşlem Logu (Son 20 AL Sinyali)", expanded=False):
+                al_sinyalleri = test_df[test_df['AI_Signal'] == 1][['Date','Ticker','Close','RSI_14','MACD','Target_T5','Max_Gain_15D','Max_Drawdown_15D']].copy()
+                al_sinyalleri['Sonuc'] = al_sinyalleri['Target_T5'].map({1: 'Dogru (Yukseldi)', 0: 'Yanlis (Dustu)'})
+                al_sinyalleri['Kazanc/Zarar'] = al_sinyalleri.apply(
+                    lambda r: f"+%{r['Max_Gain_15D']*0.3:.1f}" if r['Target_T5']==1 else f"-%{abs(r['Max_Drawdown_15D']*0.5):.1f}", axis=1)
+                st.dataframe(al_sinyalleri[['Date','Ticker','Close','RSI_14','MACD','Sonuc','Kazanc/Zarar']].tail(20), use_container_width=True)
+                
+                st.markdown(f"""
+                **Toplam AL Sinyali:** {len(al_sinyalleri)} | 
+                **Dogru:** {len(al_sinyalleri[al_sinyalleri['Target_T5']==1])} | 
+                **Yanlis:** {len(al_sinyalleri[al_sinyalleri['Target_T5']==0])} | 
+                **Win Rate:** %{win_rate:.1f}
+                """)
+
+# ==========================================
+# TAB 7: HİSSE SORGULA
+# ==========================================
+with tab7:
+    st.markdown("### Hisse Sorgula — AI Tavsiye Motoru")
+    st.markdown("Veri setindeki herhangi bir hisseyi secin, model son verilerine bakarak AL/BEKLE onerisi uretsin.")
+    
+    all_tickers = sorted(df['Ticker'].unique())
+    selected = st.selectbox("Hisse Secin", all_tickers, index=0, key="sorgu_ticker")
+    
+    if st.button("Analiz Et", key="sorgu_btn"):
+        with st.spinner(f"{selected} analiz ediliyor..."):
+            features_q = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
+            
+            # Model egit (tum veriyle)
+            df_train = df.dropna(subset=features_q + ['Target_T5']).copy()
+            scaler_q = StandardScaler()
+            X_all = scaler_q.fit_transform(df_train[features_q])
+            y_all = df_train['Target_T5']
+            rf_q = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+            rf_q.fit(X_all, y_all)
+            
+            # Secilen hissenin son verisi
+            hisse = df[df['Ticker'] == selected].copy()
+            hisse['Date'] = pd.to_datetime(hisse['Date'])
+            hisse = hisse.sort_values('Date')
+            son = hisse.dropna(subset=features_q).tail(1)
+            
+            if len(son) == 0:
+                st.error("Bu hisse icin yeterli veri bulunamadi.")
+            else:
+                son_scaled = scaler_q.transform(son[features_q])
+                tahmin = rf_q.predict(son_scaled)[0]
+                proba = rf_q.predict_proba(son_scaled)[0]
+                guven = max(proba) * 100
+                
+                # Fiyat grafigi
+                son_90 = hisse.tail(90)
+                fig_q = go.Figure()
+                fig_q.add_trace(go.Scatter(x=son_90['Date'], y=son_90['Close'], mode='lines',
+                                           name='Kapanis Fiyati', line=dict(color='#00f2ff', width=2)))
+                fig_q.update_layout(title=f"{selected} - Son 90 Islem Gunu",
+                                    template="plotly_dark", plot_bgcolor="#0e1117", paper_bgcolor="#0e1117")
+                st.plotly_chart(fig_q, use_container_width=True)
+                
+                # Oneri karti
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
+                    if tahmin == 1:
+                        st.markdown("<div class='metric-label'>AI ONERISI</div>", unsafe_allow_html=True)
+                        st.markdown("<div class='metric-value'>AL</div>", unsafe_allow_html=True)
+                        st.markdown(f"<small>Guven: %{guven:.1f} | 5 gun icinde yukselis bekleniyor</small>", unsafe_allow_html=True)
+                    else:
+                        st.markdown("<div class='metric-label'>AI ONERISI</div>", unsafe_allow_html=True)
+                        st.markdown("<div style='color:#ff4444;font-size:1.5rem;font-weight:bold;font-family:monospace;'>BEKLE</div>", unsafe_allow_html=True)
+                        st.markdown(f"<small>Guven: %{guven:.1f} | 5 gun icinde dusus/yatay bekleniyor</small>", unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                with col2:
+                    st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
+                    st.markdown("<div class='metric-label'>GOSTERGE DEGERLERI</div>", unsafe_allow_html=True)
+                    row = son.iloc[0]
+                    st.markdown(f"""
+                    | Gosterge | Deger | Yorum |
+                    |----------|-------|-------|
+                    | RSI_14 | {row['RSI_14']:.1f} | {'Asiri Alim' if row['RSI_14']>70 else 'Asiri Satim' if row['RSI_14']<30 else 'Notr'} |
+                    | MACD | {row['MACD']:.4f} | {'Yukselis' if row['MACD']>0 else 'Dusus'} sinyali |
+                    | Stoch_K | {row['Stoch_K']:.1f} | {'Asiri Alim' if row['Stoch_K']>80 else 'Asiri Satim' if row['Stoch_K']<20 else 'Notr'} |
+                    | ATR_14 | {row['ATR_14']:.4f} | Volatilite olcusu |
+                    | Expert | {int(row['Expert_Signal'])} | {'Formasyon sinyali var' if row['Expert_Signal']==1 else 'Formasyon yok'} |
+                    """, unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                # Neden bu karar?
+                with st.expander("Neden Bu Karar Verildi?", expanded=True):
+                    reasons = []
+                    if row['RSI_14'] < 30:
+                        reasons.append("RSI 30 altinda: Hisse asiri satilmis, toparlanma potansiyeli var.")
+                    elif row['RSI_14'] > 70:
+                        reasons.append("RSI 70 ustunde: Hisse asiri alim bolgesinde, duzeltme riski var.")
+                    else:
+                        reasons.append(f"RSI {row['RSI_14']:.0f}: Notr bolgede.")
+                    
+                    if row['MACD'] > 0:
+                        reasons.append("MACD pozitif: Yukselis momentumu devam ediyor.")
+                    else:
+                        reasons.append("MACD negatif: Dusus momentumu hakim.")
+                    
+                    if row['Stoch_K'] < 20:
+                        reasons.append("Stochastic 20 altinda: Dip bolgesi, donme sinyali olabilir.")
+                    elif row['Stoch_K'] > 80:
+                        reasons.append("Stochastic 80 ustunde: Tepe bolgesi, geri cekilme olabilir.")
+                    
+                    if row['Expert_Signal'] == 1:
+                        reasons.append("Uzman sistemi bir formasyon (OBO/TOBO/Bayrak) tespit etmis.")
+                    
+                    reasons.append(f"Model guveni: %{guven:.1f} (Yukselis olasiligi: %{proba[1]*100:.1f}, Dusus: %{proba[0]*100:.1f})")
+                    
+                    for r in reasons:
+                        st.markdown(f"- {r}")

@@ -1,96 +1,97 @@
-<div align="center">
-  <h1 align="center">BIST Teknik Analiz Platformu</h1>
-  <p align="center"><strong>Ibrahim Tatar Analiz</strong></p>
-  <p align="center">
-    Borsa İstanbul (BIST) hisseleri için gelişmiş teknik analiz ve backtesting aracı.
-  </p>
-  <p align="center">
-    <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" alt="Python">
-    <img src="https://img.shields.io/badge/Streamlit-1.30+-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
-    <img src="https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?logo=plotly&logoColor=white" alt="Plotly">
-    <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-  </p>
-</div>
+# BorsaNeuron: Algorithmic Stock Price Forecasting & Automated Technical Pattern Scanner Platform
 
-<hr>
+Welcome to the official repository of **BorsaNeuron**, a comprehensive quantitative decision support and analytics workstation designed for the Borsa Istanbul (BIST) equity market. This platform integrates statistical machine learning classifiers, unsupervised regime clustering, macroeconomic indicators, and dynamic chart pattern scanners into a unified interactive business intelligence terminal.
 
-## 📌 Proje Özeti
+Developed as a Graduation Thesis project at **Yeditepe University**, Department of Management Information Systems, BorsaNeuron bridges the gap between high-dimensional statistical modeling and active portfolio execution.
 
-**BIST Teknik Analiz Platformu**, BIST (Borsa İstanbul) hisselerini otomatik olarak tarayan ve klasik teknik analiz formasyonlarını tespit eden bir yapay zeka destekli analiz platformudur.
+---
 
-Uygulama, **ZigZag algoritması**, **geometrik doğrulama** ve **hacim profili analizi** kullanarak yatırımcılara potansiyel alım/satım fırsatlarını görselleştirir.
+## Key Platform Features
 
-## ✨ Temel Özellikler
+### 1. Quantitative Inference Engine & Live Forecasting
+* **Real-Time Data Streaming:** Leverages yFinance API streams to download live BIST daily price matrices dynamically.
+* **Algorithmic Inference:** Standardizes real-time indicators and runs online inferences using optimized supervised machine learning models to forecast 5-day future closing price directions (`Target_T5`).
+* **Core Model:** Implements serialized high-performance XGBoost and Random Forest classifiers.
 
-- **Gelişmiş Tarayıcı (Scanner)**: BIST hisselerinde TOBO, OBO, Fincan-Kulp, Boğa Bayrak, Flama, RSI Uyumsuzlukları ve Mum Formasyonlarını tespit eder.
-- **Taban Avcısı (Floor Hunter)**: Piyasadaki %10 taban olmuş hisseleri otomatik tespit eder.
-- **Hibrit Derinlik Analizi**: `@borsabilgibot` üzerinden Telegram UserBot yardımıyla gerçek zamanlı lot ve derinlik verisi çeker.
-- **Lot Erimesi Takibi**: Tabandaki lotlardaki azalmaları (erime) analiz ederek potansiyel dönüş sinyalleri üretir.
-- **Premium Dashboard**: Cam efekti (glassmorphism) ve modern koyu tema ile şık bir kullanıcı deneyimi.
-- **Modüler Yapı**: Kod tabanı Dashboard, Tarayıcı, Haberler, Portföy Takip, Backtesting gibi çok sayfalık (Multi-page) Streamlit yapısına taşınmıştır.
-- **Akıllı Backtesting**: Geçmiş formasyonların başarı oranlarını hesaplar. Seçilen formasyonlar için "Hedefe Ulaştı" veya "Stop Oldu" istatistiklerini raporlar.
-- **Portföy Yönetimi**: Kendi portföyünüzü ekleyip, hisselerinizin maliyet ve kâr/zarar durumunu canlı olarak grafiklerle takip edebilirsiniz.
-- **Canlı Piyasa Haberleri**: Seçili hisselere veya genel BIST piyasasına ait finansal haberleri otomatik çeker ve pozitif/negatif duygu analizi (Sentiment Analysis) yapar.
-- **Telegram Entegrasyonu**: Özel alarmlarınızı, tarama sonuçlarınızı ve **Taban Lot** uyarılarını detaylı (canlı fiyatlı) mesajlarla telefonunuza gönderir.
+### 2. Unsupervised Market Regime Segmentation
+* **K-Means Clustering:** Segments technical indicator profiles into 5 unique market regimes (breakout, taban, consolidation, recovery, bull run) optimized via Elbow analysis.
+* **Dimensionality Reduction:** Projects high-dimension indicators into 2D feature space using Principal Component Analysis (PCA) for visual cluster separation and regime profile analysis.
 
-## 🚀 Kurulum
+### 3. Out-of-Sample Portfolio Backtest Simulator
+* **Chronological Simulation:** Simulates an algorithmic strategy on out-of-sample testing data (2023–2024), starting with 100,000 TL capital.
+* **Friction and slippage modeling:** Incorporates transaction costs, commission rates, and slippage margins by capturing 30% of target gains and applying 50% of downside risks.
+* **Index Comparison:** Renders active growth curves comparing the BorsaNeuron AI Strategy directly against a baseline Buy & Hold index.
 
-### 1. Python Sürümü
+### 4. Dynamic Win-Rate Weighting Engine
+* **Historical Compliance:** Performs a 1-year rolling historical backtest for the queried BIST stock under the AI strategy to calculate its unique win rate.
+* **Karar Düzeltme (Risk Modulator):** Automatically adjusts recommendation alerts (AL, AL Yüksek Risk, BEKLE) based on the stock's compliance rate, issuing warning flags if historical compliance falls below 48%.
 
-Bu proje **Python 3.10+** sürümleriyle uyumludur.
+### 5. Automated Technical Pattern Scanner
+* **Geometrical Scanning:** Automates the scanning of historical BIST datasets to flag geometric chart formations such as Cup & Handle, Head and Shoulders (OBO), Inverse Head and Shoulders (TOBO), and Flags.
+* **BIST 537 Comprehensive Scan:** Analyzes all 537 active BIST stocks, grouping active formations dynamically and charting indicator averages.
 
-### 2. Gerekli Kütüphaneler
+---
 
-Repoyu klonladıktan sonra bağımlılıkları yükleyin:
+## Software Requirements and Installation
 
-```bash
-git clone https://github.com/KULLANICI_ADINIZ/analiz.git
-cd analiz
-```
+### 1. Requirements
+* **Python v3.9 or v3.11**
+* **Git** (for version control)
+* **Playwright** (for automated dashboard screenshot capture)
+
+### 2. Setup Guide
+Clone the repository and install all required python libraries:
 
 ```bash
+# Clone the repository
+git clone https://github.com/zachariatrying/borsaneuron.git
+cd borsaneuron
+
+# Install python dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Ortam Değişkenleri (Opsiyonel)
-
-Projedeki bazı özellikler API anahtarları gerektirebilir. Proje kök dizinine `.env` veya Streamlit Secrets (`.streamlit/secrets.toml`) dosyası açarak gerekli anahtarları tanımlayabilirsiniz. Telegram bilgileri arayüz üzerinden de girilip cihazda kalıcı olarak saklanabilmektedir.
-
-## 💻 Kullanım
-
-Uygulamayı başlatmak için ana klasördeyken şu komutu çalıştırın:
+### 3. Running the Dashboard
+To start the BorsaNeuron interactive web dashboard locally, execute:
 
 ```bash
-python -m streamlit run src/app.py
+streamlit run src/app.py
 ```
+Open your browser and navigate to `http://localhost:8501`.
 
-Tarayıcınızda otomatik olarak **<http://localhost:8501>** adresinde BIST Teknik Analiz Platformu açılacaktır.
+---
 
-### Klasör Yapısı
+## File Hierarchy
 
-```
-analiz/
+The project repository is structured logically to segregate offline data science scripts, serializations, live Streamlit frontends, and graduation thesis documentation:
+
+```text
+borsaneuron/
+├── .streamlit/
+│   └── config.toml                  # Streamlit interface configurations
+├── bist_ai_dataset_real_30cols.csv   # Compressed BIST historical dataset (79.18 MB)
+├── best_scaler_acm465.joblib         # Serialized StandardScaler weights
+├── best_model_acm465.joblib          # Serialized MLP/Random Forest model
+├── acm465_proje.py                   # Offline Data Science and Modeling Pipeline
+├── requirements.txt                  # Python package dependency list
+├── Dockerfile                        # Production container blueprint
+├── capture_ui.py                     # Automated Playwright screenshot script
 ├── src/
-│   ├── app.py                       # Ana Streamlit uygulaması ve karşılama ekranı
-│   ├── analyzer.py                  # Formasyon tespiti ve teknik analiz algoritmaları
-│   ├── yf_utils.py                  # Yahoo Finance veri çekme işlemleri
-│   └── pages/                       # Çoklu sayfa (Multi-page) modülleri
-│       ├── 1_Dashboard.py           # Genel piyasa özeti ve BIST endeksleri
-│       ├── 2_Tarayici.py            # Otomatik formasyon tarama motoru
-│       ├── 3_Hakkinda.py            # Kullanım kılavuzu ve proje hakkında
-│       ├── 4_Sektorler.py           # Sektörel performans izleme
-│       ├── 5_Bist30_Kiyaslama.py    # Göreceli Güç (RS) analizi
-│       ├── 6_Backtesting.py         # Geçmiş formasyonların performans testi
-│       ├── 7_Portfoy.py             # Portföy ve kâr/zarar takibi
-│       ├── 8_Telegram.py            # Telegram bot bildirim ayarları
-│       ├── 9_Haberler.py            # Haber akışı ve yapay zeka duygu analizi
-│       └── 10_Derinlik.py           # Hibrit Taban Avcısı ve Telegram Derinlik Analizi
-├── requirements.txt
-└── README.md
+│   ├── app.py                        # Streamlit web application entrypoint
+│   ├── theme.py                      # UI Color theme and stylesheet guide
+│   ├── data_manager.py               # Data loaders and yfinance API client
+│   ├── earnings_data.py              # Macro-corporate data structures
+│   ├── macro_data.py                 # Macroeconomic data parsers
+│   └── verify_tobo_strict.py         # TOBO and Cup-Handle pattern scanners
+└── graduation_thesis/
+    ├── Tez_Metni_Final.md            # Complete Thesis Markdown draft
+    ├── BorsaNeuron_Graduation_Thesis.docx # Compiled MS Word Thesis (Academic Standard)
+    ├── BorsaNeuron_Graduation_Thesis.pdf  # Compiled PDF Thesis
+    ├── convert_to_docx.py            # Custom Markdown -> DOCX compiler
+    ├── convert_to_pdf.py             # Custom Markdown -> PDF compiler
+    └── images/                       # Screen captures and figures
 ```
 
 ---
 
-<p align="center">
-  <strong>BIST Teknik Analiz Platformu</strong> — Ibrahim Tatar Analiz
-</p>
+*BorsaNeuron — Designed and Developed by İbrahim Tatar (MIS Department, Yeditepe University)*

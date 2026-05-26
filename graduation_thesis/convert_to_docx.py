@@ -1,0 +1,302 @@
+import os
+import sys
+import re
+import docx
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import parse_xml, OxmlElement
+from docx.oxml.ns import nsdecls, qn
+
+thesis_dir = "C:/Users/ibrah/.gemini/antigravity/scratch/graduation_thesis"
+md_path = os.path.join(thesis_dir, "Tez_Metni_Final.md")
+docx_path = os.path.join(thesis_dir, "BorsaNeuron_Graduation_Thesis.docx")
+
+def set_cell_background(cell, fill_hex):
+    """Set cell background shading."""
+    tcPr = cell._tc.get_or_add_tcPr()
+    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
+    tcPr.append(shd)
+
+def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+    """Set padding/margins for table cells in twentieths of a point (dxa)."""
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcMar = OxmlElement('w:tcMar')
+    for m, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
+        node = OxmlElement(f'w:{m}')
+        node.set(qn('w:w'), str(val))
+        node.set(qn('w:type'), 'dxa')
+        tcMar.append(node)
+    tcPr.append(tcMar)
+
+def parse_markdown_text(paragraph, text):
+    """Parse basic markdown bold (**text**) and italic (*text*) and convert to docx runs."""
+    # Pattern to match bold, italic, and normal text
+    pattern = re.compile(r'(\*\*\*.*?\*\*\*|\*\*.*?\*\*|\*.*?\*|\[.*?\]\(.*?\)|`.*?`|[^\*`\[]+)')
+    matches = pattern.findall(text)
+    
+    for match in matches:
+        if match.startswith('***') and match.endswith('***'):
+            run = paragraph.add_run(match[3:-3])
+            run.bold = True
+            run.italic = True
+        elif match.startswith('**') and match.endswith('**'):
+            run = paragraph.add_run(match[2:-2])
+            run.bold = True
+        elif match.startswith('*') and match.endswith('*'):
+            run = paragraph.add_run(match[1:-1])
+            run.italic = True
+        elif match.startswith('`') and match.endswith('`'):
+            run = paragraph.add_run(match[1:-1])
+            run.font.name = 'Courier New'
+            run.font.size = Pt(10.5)
+        elif match.startswith('[') and ']' in match:
+            # Simple link text parsing
+            link_text = match[1:match.find(']')]
+            run = paragraph.add_run(link_text)
+            run.font.color.rgb = RGBColor(0, 0, 238)
+            run.underline = True
+        else:
+            paragraph.add_run(match)
+
+def apply_global_styles(doc):
+    """Apply Yeditepe University margins and styles to document."""
+    # Margins: 1 inch (2.54 cm) on all sides
+    for section in doc.sections:
+        section.top_margin = Inches(1.0)
+        section.bottom_margin = Inches(1.0)
+        section.left_margin = Inches(1.0)
+        section.right_margin = Inches(1.0)
+        
+        # Configure footer with page numbers
+        footer = section.footer
+        f_p = footer.paragraphs[0]
+        f_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        f_run = f_p.add_run("BorsaNeuron Graduation Thesis  |  Page ")
+        f_run.font.name = 'Times New Roman'
+        f_run.font.size = Pt(9.5)
+        f_run.font.color.rgb = RGBColor(120, 120, 120)
+        
+        # Add dynamic page numbers
+        fldSimple = OxmlElement('w:fldSimple')
+        fldSimple.set(qn('w:instr'), 'PAGE')
+        f_p._p.append(fldSimple)
+
+def build_docx():
+    print(f"Reading markdown from: {md_path}")
+    with open(md_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        
+    doc = docx.Document()
+    apply_global_styles(doc)
+    
+    # Cover Page states
+    is_cover_page = True
+    in_table = False
+    table_lines = []
+    
+    for index, line in enumerate(lines):
+        clean_line = line.strip()
+        
+        # 1. Handle horizontal rule for cover page separation
+        if clean_line == "---" and is_cover_page:
+            is_cover_page = False
+            doc.add_page_break()
+            continue
+            
+        if is_cover_page:
+            # Center and format cover page elements
+            if not clean_line:
+                doc.add_paragraph()
+                continue
+            
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            if clean_line.startswith("# "):
+                run = p.add_run(clean_line[2:])
+                run.bold = True
+                run.font.size = Pt(20)
+            elif clean_line.startswith("## "):
+                run = p.add_run(clean_line[3:])
+                run.bold = True
+                run.font.size = Pt(16)
+            elif clean_line.startswith("### "):
+                run = p.add_run(clean_line[4:])
+                run.bold = True
+                run.font.size = Pt(14)
+            else:
+                run = p.add_run(clean_line)
+                run.font.size = Pt(12)
+                
+            run.font.name = 'Times New Roman'
+            continue
+
+        # 2. Parse Tables
+        if clean_line.startswith("|"):
+            in_table = True
+            table_lines.append(clean_line)
+            continue
+        elif in_table and not clean_line.startswith("|"):
+            # End of table, process it
+            in_table = False
+            if table_lines:
+                # Remove separator line (e.g., |---|---|)
+                processed_lines = [l for l in table_lines if not re.match(r'^\|[\s\-\|]+$', l)]
+                
+                rows_data = []
+                for t_line in processed_lines:
+                    cols = [c.strip() for c in t_line.split("|")[1:-1]]
+                    rows_data.append(cols)
+                
+                if rows_data:
+                    num_cols = len(rows_data[0])
+                    num_rows = len(rows_data)
+                    
+                    table = doc.add_table(rows=num_rows, cols=num_cols)
+                    table.autofit = True
+                    
+                    for r_idx, row_cells in enumerate(table.rows):
+                        row_data = rows_data[r_idx]
+                        for c_idx, cell in enumerate(row_cells.cells):
+                            # Handle different lengths
+                            if c_idx < len(row_data):
+                                cell.text = ""
+                                p = cell.paragraphs[0]
+                                p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                                run = p.add_run(row_data[c_idx])
+                                run.font.name = 'Times New Roman'
+                                run.font.size = Pt(10.5)
+                                
+                                # Styling headers
+                                if r_idx == 0:
+                                    run.bold = True
+                                    set_cell_background(cell, "F2F2F2")
+                                
+                                # Set cell padding
+                                set_cell_margins(cell, top=120, bottom=120, left=150, right=150)
+            
+            table_lines = []
+            if not clean_line:
+                continue
+
+        # 3. Headings & Page Breaks
+        if clean_line.startswith("# "):
+            doc.add_page_break() # Academic standard: H1 starts on a new page!
+            p = doc.add_heading(level=1)
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            run = p.add_run(clean_line[2:])
+            run.font.name = 'Times New Roman'
+            run.bold = True
+            run.font.size = Pt(18)
+            run.font.color.rgb = RGBColor(17, 17, 17)
+            continue
+            
+        elif clean_line.startswith("## "):
+            p = doc.add_heading(level=2)
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            run = p.add_run(clean_line[3:])
+            run.font.name = 'Times New Roman'
+            run.bold = True
+            run.font.size = Pt(14)
+            run.font.color.rgb = RGBColor(30, 30, 30)
+            continue
+            
+        elif clean_line.startswith("### "):
+            p = doc.add_heading(level=3)
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            run = p.add_run(clean_line[4:])
+            run.font.name = 'Times New Roman'
+            run.bold = True
+            run.font.size = Pt(12)
+            run.font.color.rgb = RGBColor(50, 50, 50)
+            continue
+
+        # 4. Handle embedded images
+        # Markdown image syntax: ![alt](images/filename.png)
+        img_match = re.match(r'^!\[(.*?)\]\((.*?)\)$', clean_line)
+        if img_match:
+            alt_text = img_match.group(1)
+            img_rel_path = img_match.group(2)
+            img_abs_path = os.path.join(thesis_dir, img_rel_path)
+            
+            if os.path.exists(img_abs_path):
+                # Add picture centered
+                p = doc.add_paragraph()
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run = p.add_run()
+                run.add_picture(img_abs_path, width=Inches(6.0))
+                
+                # Add caption paragraph
+                p_cap = doc.add_paragraph()
+                p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_cap_run = p_cap.add_run(f"Figure: {alt_text}")
+                p_cap_run.italic = True
+                p_cap_run.font.name = 'Times New Roman'
+                p_cap_run.font.size = Pt(10)
+                p_cap_run.font.color.rgb = RGBColor(80, 80, 80)
+            else:
+                print(f"Warning: Image file not found at: {img_abs_path}")
+            continue
+
+        # 5. List items
+        list_match = re.match(r'^[\-\*\+]\s+(.*)$', clean_line)
+        if list_match:
+            content = list_match.group(1)
+            p = doc.add_paragraph(style='List Bullet')
+            p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.line_spacing = 1.15
+            parse_markdown_text(p, content)
+            
+            # Format font
+            for run in p.runs:
+                run.font.name = 'Times New Roman'
+                run.font.size = Pt(12)
+            continue
+
+        # 6. Blockquotes
+        quote_match = re.match(r'^>\s*(.*)$', clean_line)
+        if quote_match:
+            content = quote_match.group(1)
+            p = doc.add_paragraph()
+            p.paragraph_format.left_indent = Inches(0.5)
+            p.paragraph_format.space_after = Pt(6)
+            parse_markdown_text(p, content)
+            
+            # Format as blockquote style
+            for run in p.runs:
+                run.font.name = 'Times New Roman'
+                run.font.size = Pt(11)
+                run.font.color.rgb = RGBColor(80, 80, 80)
+                run.italic = True
+            continue
+
+        # 7. Standard Paragraphs
+        if clean_line:
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.line_spacing = 1.5 # 1.5 line spacing as required
+            p.paragraph_format.space_after = Pt(8)
+            parse_markdown_text(p, clean_line)
+            
+            # Apply standard body font
+            for run in p.runs:
+                # Keep Courier New for inline code
+                if run.font.name != 'Courier New':
+                    run.font.name = 'Times New Roman'
+                    run.font.size = Pt(12)
+        else:
+            # Empty line spacer
+            doc.add_paragraph()
+            
+    print(f"Saving compiled MS Word document to: {docx_path}")
+    try:
+        doc.save(docx_path)
+        print("MS Word document successfully generated!")
+    except PermissionError:
+        alt_docx_path = docx_path.replace(".docx", "_v2.docx")
+        print(f"Permission denied on {docx_path} (it is likely open in MS Word). Saving to alternative path: {alt_docx_path}")
+        doc.save(alt_docx_path)
+        print("Alternative MS Word document successfully generated!")
+
+if __name__ == "__main__":
+    build_docx()

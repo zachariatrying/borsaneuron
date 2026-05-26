@@ -85,14 +85,15 @@ if df is None:
     st.stop()
 
 # Sekmeler
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "1. Veri Keşfi",
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    "1. Veri Kesfi",
     "2. Korelasyon & Eleme",
     "3. K-Means & PCA",
-    "4. Model Karşılaştırması",
+    "4. Model Karsilastirmasi",
     "5. Zaman Serisi (Prophet)",
     "6. Finansal Backtest",
-    "7. Hisse Sorgula"
+    "7. Hisse Sorgula",
+    "8. Formasyon Tarayici"
 ])
 
 # ==========================================
@@ -507,25 +508,27 @@ with tab7:
             raw_live_data = yf.download(full_ticker, period=period_map[backtest_years], interval="1d")
             
             if raw_live_data is None or raw_live_data.empty or len(raw_live_data) < 50:
-                st.error(f"❌ {full_ticker} için canlı veri çekilemedi veya yetersiz veri (en az 50 gün veri gerekli).")
+                st.error(f"\u274c {full_ticker} icin canli veri cekilemedi veya yetersiz veri (en az 50 gun veri gerekli).")
                 st.stop()
             
-            # Çoklu indeks temizleme (yfinance bazen çift index döndürebilir)
+            # Coklu indeks temizleme (yfinance MultiIndex fix)
+            raw_live_data = raw_live_data.copy()
             if isinstance(raw_live_data.columns, pd.MultiIndex):
-                raw_live_data.columns = raw_live_data.columns.get_level_values(0)
+                raw_live_data.columns = [c[0] if isinstance(c, tuple) else c for c in raw_live_data.columns]
             
+            # Index'i Date kolonuna cevir
             raw_live_data.reset_index(inplace=True)
             
             # Kolon isimlerini standart hale getir
-            col_rename = {
-                'Date': 'Date',
-                'Open': 'Open',
-                'High': 'High',
-                'Low': 'Low',
-                'Close': 'Close',
-                'Volume': 'Volume'
-            }
-            raw_live_data.rename(columns=col_rename, inplace=True)
+            # yfinance bazen 'Datetime' veya 'index' dondurebilir
+            if 'Datetime' in raw_live_data.columns and 'Date' not in raw_live_data.columns:
+                raw_live_data.rename(columns={'Datetime': 'Date'}, inplace=True)
+            if 'index' in raw_live_data.columns and 'Date' not in raw_live_data.columns:
+                raw_live_data.rename(columns={'index': 'Date'}, inplace=True)
+            
+            # Date kolonu hala yoksa ilk kolonu Date yap
+            if 'Date' not in raw_live_data.columns:
+                raw_live_data.rename(columns={raw_live_data.columns[0]: 'Date'}, inplace=True)
 
             # İndikatör hesaplama fonksiyonu (Tez standartlarında)
             def compute_live_features(df_raw):
@@ -831,27 +834,162 @@ with tab7:
                 # Neden bu karar?
                 with st.expander("Neden Bu Karar Verildi?", expanded=True):
                     reasons = []
-                    if row['RSI_14'] < 30:
-                        reasons.append("RSI 30 altında: Hisse aşırı satılmış, toparlanma potansiyeli var.")
-                    elif row['RSI_14'] > 70:
-                        reasons.append("RSI 70 üstünde: Hisse aşırı alım bölgesinde, düzeltme riski var.")
+                    if son_row['RSI_14'] < 30:
+                        reasons.append("RSI 30 altinda: Hisse asiri satilmis, toparlanma potansiyeli var.")
+                    elif son_row['RSI_14'] > 70:
+                        reasons.append("RSI 70 ustunde: Hisse asiri alim bolgesinde, duzeltme riski var.")
                     else:
-                        reasons.append(f"RSI {row['RSI_14']:.0f}: Nötr bölgede.")
+                        reasons.append(f"RSI {son_row['RSI_14']:.0f}: Notr bolgede.")
                     
-                    if row['MACD'] > 0:
-                        reasons.append("MACD pozitif: Yükseliş momentumu devam ediyor.")
+                    if son_row['MACD'] > 0:
+                        reasons.append("MACD pozitif: Yukselis momentumu devam ediyor.")
                     else:
-                        reasons.append("MACD negatif: Düşüş momentumu hakim.")
+                        reasons.append("MACD negatif: Dusus momentumu hakim.")
                     
-                    if row['Stoch_K'] < 20:
-                        reasons.append("Stochastic 20 altında: Dip bölgesi, dönme sinyali olabilir.")
-                    elif row['Stoch_K'] > 80:
-                        reasons.append("Stochastic 80 üstünde: Tepe bölgesi, geri çekilme olabilir.")
+                    if son_row['Stoch_K'] < 20:
+                        reasons.append("Stochastic 20 altinda: Dip bolgesi, donme sinyali olabilir.")
+                    elif son_row['Stoch_K'] > 80:
+                        reasons.append("Stochastic 80 ustunde: Tepe bolgesi, geri cekilme olabilir.")
                     
-                    if row['Expert_Signal'] == 1:
-                        reasons.append("Uzman sistemi bir formasyon (OBO/TOBO/Bayrak) tespit etmiş.")
+                    if son_row['Expert_Signal'] == 1:
+                        reasons.append("Uzman sistemi bir formasyon (OBO/TOBO/Bayrak) tespit etmis.")
                     
-                    reasons.append(f"Model güveni: %{guven:.1f} (Yükseliş olasılığı: %{proba[1]*100:.1f}, Düşüş: %{proba[0]*100:.1f})")
+                    reasons.append(f"Model guveni: %{guven:.1f} (Yukselis olasiligi: %{proba[1]*100:.1f}, Dusus: %{proba[0]*100:.1f})")
                     
                     for r in reasons:
                         st.markdown(f"- {r}")
+
+# ==========================================
+# TAB 8: FORMASYON TARAYICI (PATTERN SCANNER)
+# ==========================================
+with tab8:
+    st.markdown("### Teknik Formasyon Tarayicisi")
+    st.markdown("Veri setindeki tum BIST hisseleri uzerinde tespit edilen teknik formasyonlari (TOBO, OBO, Cup & Handle, Flag) tariyoruz.")
+    
+    with st.expander("Formasyon Aciklamalari", expanded=True):
+        st.markdown('''
+        - **TOBO (Ters Omuz-Bas-Omuz):** Dusus trendinin sonunda olusan guclu yukselis donme formasyonu. Boyun cizgisi kirilimi ile onaylanir.
+        - **OBO (Omuz-Bas-Omuz):** Yukselis trendinin sonunda olusan dusus donme formasyonu. Boyun cizgisi asagi kirilimi ile teyit edilir.
+        - **Cup & Handle (Fincan-Kulp):** Yuvarlak tabani olan birikim formasyonu. Kulp kirilimi ile yukselis baslar.
+        - **Flag (Bayrak/Flama):** Guclu bir hareketin ardindan olusan kisa konsolidasyon. Kirilimla onceki trendin devami beklenir.
+        ''')
+    
+    # Pattern_Type kolonu varsa tarama yap
+    if 'Pattern_Type' in df.columns:
+        # Son 30 gun icerisindeki formasyonlari filtrele
+        df_scan = df.copy()
+        df_scan['Date'] = pd.to_datetime(df_scan['Date'])
+        son_tarih = df_scan['Date'].max()
+        df_recent = df_scan[df_scan['Date'] >= son_tarih - pd.Timedelta(days=30)]
+        
+        # Formasyon tespit edilenler
+        df_patterns = df_recent[df_recent['Pattern_Type'] != 'Yok'].copy()
+        
+        if df_patterns.empty:
+            st.info("Son 30 gun icerisinde aktif bir teknik formasyon tespit edilmedi.")
+        else:
+            # Ozet istatistikler
+            pattern_counts = df_patterns['Pattern_Type'].value_counts()
+            
+            col_p1, col_p2, col_p3, col_p4 = st.columns(4)
+            col_p1.metric("Toplam Formasyon", len(df_patterns))
+            col_p2.metric("Farkli Hisse", df_patterns['Ticker'].nunique())
+            col_p3.metric("AL Sinyali", int((df_patterns['Expert_Signal'] == 1).sum()))
+            col_p4.metric("SAT Sinyali", int((df_patterns['Expert_Signal'] == -1).sum()))
+            
+            # Formasyon dagilimi grafigi
+            fig_pat = px.bar(
+                x=pattern_counts.index,
+                y=pattern_counts.values,
+                title="Tespit Edilen Formasyonlarin Dagilimi (Son 30 Gun)",
+                labels={'x': 'Formasyon Tipi', 'y': 'Adet'},
+                color=pattern_counts.index,
+                color_discrete_sequence=['#00ff88', '#ff4444', '#ffbf00', '#00f2ff']
+            )
+            fig_pat.update_layout(template="plotly_dark", plot_bgcolor="#0e1117", paper_bgcolor="#0e1117", showlegend=False)
+            st.plotly_chart(fig_pat, use_container_width=True)
+            
+            # Formasyon tablosu
+            st.markdown("#### Tespit Edilen Formasyonlar (Detay Tablosu)")
+            display_cols = ['Date', 'Ticker', 'Close', 'Pattern_Type', 'Expert_Signal', 'RSI_14', 'MACD', 'Depth_Ratio', 'Neckline_Slope']
+            available_cols = [c for c in display_cols if c in df_patterns.columns]
+            df_show = df_patterns[available_cols].sort_values('Date', ascending=False).head(50)
+            
+            # Sinyal aciklamasi ekle
+            sinyal_map = {1: 'AL', -1: 'SAT', 0: 'NOTR'}
+            if 'Expert_Signal' in df_show.columns:
+                df_show['Sinyal'] = df_show['Expert_Signal'].map(sinyal_map)
+            
+            st.dataframe(df_show, use_container_width=True, height=500)
+            
+            # Formasyon bazli hisse listesi
+            st.markdown("#### Formasyon Bazinda Hisse Gruplari")
+            for pat_type in pattern_counts.index:
+                with st.expander(f"{pat_type} Formasyonu ({pattern_counts[pat_type]} adet)"):
+                    pat_df = df_patterns[df_patterns['Pattern_Type'] == pat_type]
+                    tickers_list = pat_df['Ticker'].unique()
+                    st.write(f"**Hisseler:** {', '.join([t.replace('.IS','') for t in tickers_list])}")
+                    
+                    # Her formasyon tipi icin ortalama gostergeler
+                    avg_rsi = pat_df['RSI_14'].mean()
+                    avg_depth = pat_df['Depth_Ratio'].mean()
+                    col_a, col_b = st.columns(2)
+                    col_a.metric("Ortalama RSI", f"{avg_rsi:.1f}")
+                    col_b.metric("Ortalama Derinlik Orani", f"{avg_depth:.3f}")
+    else:
+        st.warning("Veri setinde 'Pattern_Type' kolonu bulunamadi. Formasyon taramasi yapilamadi.")
+    
+    # Canli Tarama (yfinance ile)
+    st.markdown("---")
+    st.markdown("#### Canli Teknik Tarama")
+    st.markdown("Asagidaki listeden sectiginiz hisselerin guncel formasyonlarini canli olarak kontrol edin.")
+    
+    scan_tickers = st.text_input("Taranacak Hisse Kodlari (virgul ile ayirin):", "THYAO, GARAN, EREGL, ASELS, FROTO", key="scan_input")
+    
+    if st.button("Canli Tarama Baslat", key="scan_btn"):
+        tickers_to_scan = [t.strip().upper() for t in scan_tickers.split(',')]
+        tickers_to_scan = [t + '.IS' if not t.endswith('.IS') else t for t in tickers_to_scan]
+        
+        scan_results = []
+        progress_bar = st.progress(0)
+        
+        for idx, tick in enumerate(tickers_to_scan):
+            try:
+                tick_data = yf.download(tick, period='6mo', interval='1d', progress=False)
+                if tick_data is not None and not tick_data.empty and len(tick_data) > 50:
+                    if isinstance(tick_data.columns, pd.MultiIndex):
+                        tick_data.columns = [c[0] if isinstance(c, tuple) else c for c in tick_data.columns]
+                    
+                    close = tick_data['Close'].values
+                    rsi_delta = pd.Series(close).diff()
+                    rsi_gain = rsi_delta.clip(lower=0).rolling(14).mean()
+                    rsi_loss = (-rsi_delta.clip(upper=0)).rolling(14).mean()
+                    rsi_loss = rsi_loss.replace(0, 1e-10)
+                    rsi_val = float((100 - (100 / (1 + rsi_gain / rsi_loss))).iloc[-1])
+                    
+                    last_close = float(close[-1])
+                    sma20 = float(pd.Series(close).rolling(20).mean().iloc[-1])
+                    sma50 = float(pd.Series(close).rolling(50).mean().iloc[-1])
+                    
+                    # Basit trend analizi
+                    trend = 'Yukselis' if last_close > sma50 else 'Dusus'
+                    rsi_durum = 'Asiri Alim' if rsi_val > 70 else 'Asiri Satim' if rsi_val < 30 else 'Notr'
+                    
+                    scan_results.append({
+                        'Hisse': tick.replace('.IS', ''),
+                        'Fiyat': f'{last_close:.2f}',
+                        'RSI_14': f'{rsi_val:.1f}',
+                        'RSI Durum': rsi_durum,
+                        'SMA20': f'{sma20:.2f}',
+                        'SMA50': f'{sma50:.2f}',
+                        'Trend': trend
+                    })
+            except Exception as e:
+                pass
+            
+            progress_bar.progress((idx + 1) / len(tickers_to_scan))
+        
+        if scan_results:
+            st.dataframe(pd.DataFrame(scan_results), use_container_width=True)
+        else:
+            st.warning("Hicbir hisse icin veri cekilemedi.")

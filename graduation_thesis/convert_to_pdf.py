@@ -23,7 +23,7 @@ except ImportError:
 import markdown
 from xhtml2pdf import pisa
 
-thesis_dir = "C:/Users/ibrah/.gemini/antigravity/scratch/graduation_thesis"
+thesis_dir = os.path.dirname(os.path.abspath(__file__)).replace("\\", "/")
 md_path = os.path.join(thesis_dir, "Tez_Metni_Final.md")
 pdf_path = os.path.join(thesis_dir, "BorsaNeuron_Graduation_Thesis.pdf")
 

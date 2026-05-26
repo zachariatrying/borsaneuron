@@ -294,8 +294,6 @@ The final XGBoost model's feature importance ranking reveals the following analy
 
 ---
 
----
-
 # 5. BORSANEURON TERMINAL ARAYÜZÜ
 
 ## 5.1. Streamlit UI Layout and Design
@@ -365,6 +363,8 @@ A portfolio growth simulator is integrated into the stock query panel. It shows 
 ---
 
 # 6. DEPLOYING PROJECT
+
+Following the successful execution of empirical machine learning modeling and interactive terminal dashboard construction, the final phase of BorsaNeuron's systems lifecycle entails enterprise-ready cloud deployment. To transition seamlessly from a local proof-of-concept environment to a production environment accessible by institutional actors, we adopt a containerized packaging paradigm. Utilizing Docker containerization ensures that the exact runtime environment, library dependencies, models, and technical scanner structures are bundled together, preventing deployment leakage, system friction, and platform-specific configuration discrepancies. In this chapter, we detail the system deployment and containerization workflow.
 
 ## 6.1. Docker Containerization
 To ensure consistent execution across local developer workstations and cloud production servers, the BorsaNeuron platform was containerized using Docker. A standardized `Dockerfile` was created:
@@ -451,20 +451,16 @@ C:/Users/ibrah/.gemini/antigravity/scratch/ipo_analyzer/
 # REFERENCES
 
 *   Adebiyi, A. A., Adewumi, A. O., & Ayo, C. K. (2014). *Comparison of ARIMA and Artificial Neural Networks Models for Stock Price Prediction*. Journal of Applied Mathematics, 2014, 1-10. https://doi.org/10.1155/2014/614342
+*   Atayurt, O. (2021). *Airbnb Demo Project*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Dr. Lecturer Uğur Tevfik Kaplancalı)
 *   Bahar, O., & Bilen, K. (2023). *Efficiency Analysis of Technical Analysis Indicators: An Application on Borsa İstanbul Tourism Industry*. Anatolia: Turizm Araştırmaları Dergisi, 34(2), 83-94. https://doi.org/10.17123/atad.1291666
-*   Bhat, S. (2021). *Intelligent Search: Beyond Direct Keyword Queries*. Journal of Digital Search Systems, 14(2), 88-102.
-*   Beheshti, J. (1992). *Information-Retrieval Techniques and the Human User*. Information Processing & Management, 28(6), 747-759.
 *   Ding, X., Zhang, Y., Liu, T., & Duan, J. (2015). *Deep learning for event-driven stock prediction*. In *Proceedings of the 24th International Joint Conference on Artificial Intelligence (IJCAI)* (pp. 2327-2333).
 *   Htun, H. H., Biehl, M., & Petkov, N. (2023). *Survey of feature selection and extraction techniques for stock market prediction*. Financial Innovation, 9(1), 26. https://doi.org/10.1186/s40854-022-00441-7
-*   Joshi, A. (2021). *The Principles and verified strategies of Search Engine Optimization*. Technology & Search Engine Rankings, 8(4), 112-126.
+*   Kutlu, G. (2022). *Intelligent Agent to Enhance Search Engine*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Assoc. Prof. Dr. Uğur Tevfik Kaplancalı)
 *   Li, A. W., & Bastos, G. S. (2020). *Stock Market Forecasting Using Deep Learning and Technical Analysis: A Systematic Review*. IEEE Access, 8, 185107-185117. https://doi.org/10.1109/ACCESS.2020.3030226
 *   Lin, Y., Guo, H., & Hu, J. (2018). *An SVM-based approach for stock market trend prediction*. International Journal of Forecasting, 34(3), 452-465. https://doi.org/10.1016/j.ijforecast.2018.03.001
 *   Nassirtoussi, A. K., Aghabozorgi, S., Wah, T. Y., & Ngo, D. C. L. (2014). *Text mining for market prediction: A systematic review*. Expert Systems with Applications, 41(16), 7653-7670. https://doi.org/10.1016/j.eswa.2014.06.009
 *   Nti, I. K., Adebiyi, M. O., & Adebiyi, A. A. (2020). *A systematic review of fundamental and technical analysis of stock market predictions*. Artificial Intelligence Review, 53(4), 3007-3057. https://doi.org/10.1007/s10462-019-09754-y
-*   Pranavathiyani, K. (2017). *Understanding the Foundations of Artificial Intelligence*. Cognitive Computing Research, 3(1), 45-56.
 *   Raşo, H., & Demirci, M. (2019). *Predicting the Turkish Stock Market BIST 30 Index using Deep Learning*. International Journal of Engineering Research and Development, 11(1), 253-265. https://doi.org/10.29137/umagd.425560
-*   Robertson, G. G., Robertson, S. K., & Mackinlay, J. D. (1993). *Information Visualizers and the Cognitive Coprocessor Interface Paradigm*. ACM Transactions on Graphics, 12(3), 150-171.
-*   Roesler, M., & Hawkins, D. T. (1984). *Intelligent Software Agents: A Survey of indirect management helper tools*. Communications of the ACM, 27(7), 654-663.
 *   Sonkavde, G., Dharrao, D. S., Bongale, A. M., Deokate, S. T., Doreswamy, D., & Bhat, S. K. (2023). *Forecasting Stock Market Prices Using Machine Learning and Deep Learning Models: A Systematic Review, Performance Analysis and Discussion of Implications*. International Journal of Financial Studies, 11(3), 94. https://doi.org/10.3390/ijfs11030094
+*   Taşkaya, E. (2021). *The Difference between Amazon and Alibaba's Marketing Strategy*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Dr. Lecturer Uğur Tevfik Kaplancalı)
 *   Verma, S., Sahu, S. P., & Sahu, T. P. (2023). *Stock Market Forecasting with Different Input Indicators using Machine Learning and Deep Learning Techniques: A Review*. IAENG International Journal of Computer Science, 50(4), 1-17.
-*   Yee, M. M. (1991). *System Design and User Interface Analysis for Online Catalogs*. Library Resources & Technical Services, 35(1), 67-86.

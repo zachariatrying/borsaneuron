@@ -7,7 +7,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import parse_xml, OxmlElement
 from docx.oxml.ns import nsdecls, qn
 
-thesis_dir = "C:/Users/ibrah/.gemini/antigravity/scratch/graduation_thesis"
+thesis_dir = os.path.dirname(os.path.abspath(__file__)).replace("\\", "/")
 md_path = os.path.join(thesis_dir, "Tez_Metni_Final.md")
 docx_path = os.path.join(thesis_dir, "BorsaNeuron_Graduation_Thesis.docx")
 

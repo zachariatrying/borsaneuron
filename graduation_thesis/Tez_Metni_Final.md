@@ -25,44 +25,44 @@ DEPARTMENT OF MANAGEMENT INFORMATION SYSTEMS
 
 ---
 
-## CONTENTS
+# CONTENTS
 
-1. INTRODUCTION 3
-2. SETTING UP PROJECT 4
-   2.1. Software Required Before Installation 4
-   2.2. Initial Installation Packages of the Project 6
-3. BUILDING BORSANEURON PLATFORM & MODULES 8
-   3.1. Quantitative Data Pipeline 8
-        3.1.1. Pearson Correlation Filtering 8
-        3.1.2. K-Means Market Segmentation 10
-        3.1.3. LZMA xz Data Compression Workaround 12
-   3.2. Supervised Machine Learning Engines 14
-        3.2.1. Hyperparameter Optimization (K-NN & GridSearchCV) 14
-        3.2.2. Random Forest Gini Feature Importances 16
-        3.2.3. Artificial Neural Networks (ANN MLPClassifier) 18
-        3.2.4. Core Production XGBoost Classifier 20
-   3.3. Streamlit Workstation Interface 22
-        3.3.1. Glassmorphic SaaS Layout & Custom CSS Injection 22
-        3.3.2. Live Stock Query Page & yfinance Inference Pipeline 24
-        3.3.3. Historical Win-Rate Decision Engine 26
-        3.3.4. Sector Peer Benchmarking 28
-        3.3.5. Interactive Candlestick Plotly Visualizer 30
-        3.3.6. Live Portfolio Backtest Simulator 32
-   3.4. Automated Geometric Pattern Recognition Engine 34
-        3.4.1. Peak and Trough Extraction via ZigZag Indicator 34
-        3.4.2. Head and Shoulders (OBO) & Inverted Head and Shoulders (TOBO) 35
-        3.4.3. Cup & Handle & Flag Formations 36
-        3.4.4. Double Bottom & Double Top Formations 37
-4. DEPLOYING PROJECT 38
-   4.1. Docker Containerization 38
-   4.2. Production Setup and Server Run Commands 39
-5. FILE HIERARCHY 39
-TECH STACK 40
-REFERENCES 41
+* ÖZ  2
+* ABSTRACT  3
+* 1. INTRODUCTION 3
+* 2. SETTING UP PROJECT 4
+   * 2.1. Software Required Before Installation 4
+   * 2.2. Initial Installation Packages of the Project 6
+* 3. BUILDING BORSANEURON PLATFORM & MODULES 8
+   * 3.1. Quantitative Data Pipeline 8
+        * 3.1.1. Pearson Correlation Filtering 8
+        * 3.1.2. K-Means Market Segmentation 10
+        * 3.1.3. LZMA xz Data Compression Workaround 12
+   * 3.2. Supervised Machine Learning Engines 14
+        * 3.2.1. Hyperparameter Optimization (K-NN & GridSearchCV) 14
+        * 3.2.2. Random Forest Gini Feature Importances 16
+        * 3.2.3. Artificial Neural Networks (ANN MLPClassifier) 18
+        * 3.2.4. Core Production XGBoost Classifier 20
+   * 3.3. Streamlit Workstation Interface 22
+        * 3.3.1. Glassmorphic SaaS Layout & Custom CSS Injection 22
+        * 3.3.2. Live Stock Query Page & yfinance Inference Pipeline 24
+        * 3.3.3. Historical Win-Rate Decision Engine 26
+        * 3.3.4. Sector Peer Benchmarking 28
+        * 3.3.5. Interactive Candlestick Plotly Visualizer 30
+        * 3.3.6. Live Portfolio Backtest Simulator 32
+   * 3.4. Automated Geometric Pattern Recognition Engine 34
+        * 3.4.1. Peak and Trough Extraction via ZigZag Indicator 34
+        * 3.4.2. Head and Shoulders (OBO) & Inverted Head and Shoulders (TOBO) 35
+        * 3.4.3. Cup & Handle & Flag Formations 36
+        * 3.4.4. Double Bottom & Double Top Formations 37
+* 4. DEPLOYING PROJECT 38
+   * 4.1. Docker Containerization 38
+   * 4.2. Production Setup and Server Run Commands 39
+* 5. FILE HIERARCHY 39
+* TECH STACK 40
+* REFERENCES 41
 
----
-
-## ÖZ
+# ÖZ
 
 Bu çalışma, Borsa İstanbul (BIST) hisse senedi piyasalarında işlem gören hisse senetlerinin teknik analiz indikatörleri ve geometrik fiyat örüntülerini kullanarak, 5 günlük gelecek fiyat yönünü tahmin etmeyi ve klasik grafik formasyonlarını otomatik olarak taramayı hedefleyen bütünsel bir karar destek platformu olan **BorsaNeuron**'u sunmaktadır. 
 
@@ -73,6 +73,19 @@ BIST hisselerinin 5 gün sonraki kapanış fiyatının bugünkünden yüksek olu
 Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bir web kontrol paneline (BorsaNeuron Dashboard) dönüştürülmüştür. Bu arayüz; kullanıcıların hisse kodu girerek `yfinance` üzerinden akan canlı teknik verilerle anlık inference tahminleri alabildiği, hisselerin **kendi geçmiş başarı uyumunu (Win Rate)** karar alma sürecine ağırlık olarak entegre ettiği ve TOBO, Fincan-Kulp, Flama, İkili Dip ve İkili Tepe gibi klasik formasyonları BIST genelinde tarayabildiği canlı bir platform sunmaktadır. Geliştirilen platform, Dockerfile ile konteynerleştirilmiş ve bulut ortamında yayına hazır hale getirilmiştir. GitHub dosya boyutu limitlerini aşmak amacıyla 318MB boyutundaki veri seti, xz formatında sıkıştırılarak 50.1MB'a düşürülmüş ve çalışma zamanında dinamik olarak okunacak şekilde entegre edilmiştir.
 
 **Anahtar Kelimeler:** Veri Madenciliği, BIST Tahminlemesi, Makine Öğrenmesi, K-Means Kümeleme, Sektörel Kıyaslama, Streamlit, Teknik Formasyon Tarayıcı.
+
+
+# ABSTRACT
+
+This study presents **BorsaNeuron**, a holistic decision support and analytics workstation designed to forecast the 5-day future price direction of equities and automate the scanning of classical chart patterns in the Borsa Istanbul (BIST) stock market. 
+
+The project was developed utilizing historical daily market data representing active equities listed on Borsa Istanbul. To enhance modeling efficiency and accuracy, a rich feature set consisting of 30 technical indicators was engineered while carefully avoiding look-ahead bias. To address collinearity among the variables, correlation analysis was executed, and highly correlated features were pruned. A K-Means clustering algorithm partitioned the technical indicator states into 5 unique market regimes, which were subsequently projected and visualized in a 2D space using Principal Component Analysis (PCA) (where PC1 and PC2 explain 52.25% of the total cumulative variance).
+
+To forecast whether a stock's closing price in 5 days will be higher than its current price (`Target_T5`), K-Nearest Neighbors (K-NN), Artificial Neural Networks (ANN - MLPClassifier), Random Forest (RF), and XGBoost classifiers were optimized and evaluated. The Artificial Neural Network (ANN) demonstrated the highest predictive performance during out-of-sample testing with a 55.68% accuracy and a 0.6496 F1-Score, while the final high-dimensional production model utilized the XGBoost Classifier for its robust precision-recall profile.
+
+The machine learning models were integrated into an interactive web dashboard developed using the Python Streamlit library. The dashboard provides a live interface where users can query BIST tickers, receive real-time inference predictions using data streamed via `yfinance`, modulate risk thresholds based on the stock's **unique historical win rate**, and trigger automated scanners for classical patterns such as Head and Shoulders (OBO/TOBO), Cup and Handle, Flag, Pennant, Double Bottom, and Double Top formations. The entire platform was containerized using Docker to ensure seamless cloud deployment. To circumvent GitHub's file size limits, the 318MB raw dataset was compressed using the LZMA (xz) algorithm to 50.1MB, and is decompressed dynamically in-memory on system startup.
+
+**Keywords:** Data Mining, BIST Price Forecasting, Machine Learning, K-Means Clustering, Sector Benchmarking, Streamlit, Technical Pattern Scanner.
 
 
 # 1. INTRODUCTION
@@ -86,8 +99,6 @@ To forecast the binary 5-day future price direction target (`Target_T5`), K-Near
 To convert these quantitative pipelines into an active business intelligence tool, an interactive web application (BorsaNeuron Dashboard) was developed using the Python Streamlit library. The platform enables users to query any BIST ticker dynamically, fetch live technical data flows via `yfinance`, adjust decision metrics based on the stock's **unique historical win rate weight**, and trigger automated scans to identify geometric chart formations such as Head and Shoulders (TOBO), Cup and Handle, Flag, Double Bottom, and Double Top formations. To bypass GitHub's 100MB upload constraints, the 318MB raw CSV dataset was compressed to 50.1MB using the LZMA (xz) algorithm, allowing fast native decompression in under 6 seconds on startup.
 
 **Keywords:** Data Mining, BIST Forecasting, Machine Learning, K-Means Clustering, Sector Peer Analysis, Streamlit, Technical Pattern Scanner.
-
----
 
 # 2. SETTING UP PROJECT
 
@@ -130,8 +141,6 @@ python -m pip install --upgrade pip
 # Install project dependencies
 pip install -r requirements.txt
 ```
-
----
 
 # 3. BUILDING BORSANEURON PLATFORM & MODULES
 
@@ -318,8 +327,6 @@ To supplement statistical forecasts, BorsaNeuron features an automated geometric
     A bearish breakout is flagged when the close price falls below the support neckline:
     $$\text{Close} < L_1$$
 
----
-
 # 4. DEPLOYING PROJECT
 
 Following modeling and dashboard construction, BorsaNeuron was containerized using Docker to ensure consistent execution across local developer workstations and cloud production servers.
@@ -359,8 +366,6 @@ docker run -d -p 80:8501 --name borsaneuron-prod borsaneuron-app:latest
 
 This maps port 8501 of the Streamlit application container directly to port 80 of the host machine, making BorsaNeuron accessible via standard HTTP.
 
----
-
 # 5. FILE HIERARCHY
 
 The complete directory tree of the BorsaNeuron graduation project is structured as follows, separating offline modeling from the online Streamlit interface:
@@ -388,8 +393,6 @@ C:/Users/ibrah/.gemini/antigravity/scratch/ipo_analyzer/
     └── test_features.py              # Unit tests for technical indicator vectors
 ```
 
----
-
 # TECH STACK
 
 | Stack Layer | Technologies Used | Purpose |
@@ -403,8 +406,6 @@ C:/Users/ibrah/.gemini/antigravity/scratch/ipo_analyzer/
 | **Interactive UI** | Python Streamlit | Premium dark-themed business intelligence frontend |
 | **Visualizations** | Plotly Express & Graph Objects | Dynamic Candlesticks, backtesting curves, PCA plots |
 | **Containerization** | Docker, Slim Runtime | Ensuring platform portability and CI/CD pipelines |
-
----
 
 # REFERENCES
 

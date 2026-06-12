@@ -1,66 +1,67 @@
 T.C
-YEDITEPE UNIVERSITY
-FACULTY OF COMMERCE
-DEPARTMENT OF MANAGEMENT INFORMATION SYSTEMS
+YEDİTEPE ÜNİVERSİTESİ
+TİCARİ BİLİMLER FAKÜLTESİ
+YÖNETİM BİLİŞİM SİSTEMLERİ BÖLÜMÜ
 
 <br><br>
 
-# BORSANEURON: ALGORITHMIC STOCK PRICE FORECASTING AND AUTOMATED TECHNICAL PATTERN SCANNER PLATFORM
+# BORSANEURON: ALGORİTMİK HİSSE SENEDİ FİYAT TAHMİNLEMESİ VE OTOMATİK TEKNİK ÖRÜNTÜ TARAYICI PLATFORMU
 ### https://github.com/zachariatrying/borsaneuron
 
 <br><br>
 
-### Graduation Thesis
-### by
+### Lisans Tezi
+### hazırlayan
 ## İbrahim Tatar
 ### 20211314007
 
 <br><br>
 
-### Thesis Supervisor: Dr. Öğr. Üyesi UĞUR TEVFİK KAPLANCALI
+### Tez Danışmanı: Dr. Öğr. Üyesi UĞUR TEVFİK KAPLANCALI
 
 <br><br>
 
-### ISTANBUL, SPRING 2026
+### İSTANBUL, BAHAR 2026
 
 ---
 
-# CONTENTS
+# İÇİNDEKİLER
 
 * ÖZ  2
 * ABSTRACT  3
-* 1. INTRODUCTION 3
-* 2. SETTING UP PROJECT 4
-   * 2.1. Software Required Before Installation 4
-   * 2.2. Initial Installation Packages of the Project 6
-* 3. BUILDING BORSANEURON PLATFORM & MODULES 8
-   * 3.1. Quantitative Data Pipeline 8
-        * 3.1.1. Pearson Correlation Filtering 8
-        * 3.1.2. K-Means Market Segmentation 10
-        * 3.1.3. LZMA xz Data Compression Workaround 12
-   * 3.2. Supervised Machine Learning Engines 14
-        * 3.2.1. Hyperparameter Optimization (K-NN & GridSearchCV) 14
-        * 3.2.2. Random Forest Gini Feature Importances 16
-        * 3.2.3. Artificial Neural Networks (ANN MLPClassifier) 18
-        * 3.2.4. Core Production XGBoost Classifier 20
-   * 3.3. Streamlit Workstation Interface 22
-        * 3.3.1. Glassmorphic SaaS Layout & Custom CSS Injection 22
-        * 3.3.2. Live Stock Query Page & yfinance Inference Pipeline 24
-        * 3.3.3. Historical Win-Rate Decision Engine 26
-        * 3.3.4. Sector Peer Benchmarking 28
-        * 3.3.5. Interactive Candlestick Plotly Visualizer 30
-        * 3.3.6. Live Portfolio Backtest Simulator 32
-   * 3.4. Automated Geometric Pattern Recognition Engine 34
-        * 3.4.1. Peak and Trough Extraction via ZigZag Indicator 34
-        * 3.4.2. Head and Shoulders (OBO) & Inverted Head and Shoulders (TOBO) 35
-        * 3.4.3. Cup & Handle & Flag Formations 36
-        * 3.4.4. Double Bottom & Double Top Formations 37
-* 4. DEPLOYING PROJECT 38
-   * 4.1. Docker Containerization 38
-   * 4.2. Production Setup and Server Run Commands 39
-* 5. FILE HIERARCHY 39
-* TECH STACK 40
-* REFERENCES 41
+* 1. GİRİŞ  4
+* 2. PROJE KURULUMU  5
+   * 2.1. Kurulum Öncesi Gerekli Yazılımlar  5
+   * 2.2. Projenin Başlangıç Kurulum Paketleri  6
+* 3. BORSANEURON PLATFORMU VE MODÜLLERİNİN İNŞASI  8
+   * 3.1. Nicel Veri Hattı  8
+        * 3.1.1. Pearson Korelasyon Filtrelemesi  8
+        * 3.1.2. K-Means Pazar Segmentasyonu  10
+        * 3.1.3. LZMA xz Veri Sıkıştırma Çözümü  12
+   * 3.2. Denetimli Makine Öğrenmesi Motorları  14
+        * 3.2.1. Hiperparametre Optimizasyonu (K-NN ve GridSearchCV)  14
+        * 3.2.2. Random Forest Gini Özellik Önem Dereceleri  16
+        * 3.2.3. Yapay Sinir Ağları (ANN MLPClassifier)  18
+        * 3.2.4. Üretim Aşaması XGBoost Sınıflandırma Modeli  20
+   * 3.3. Streamlit İş İstasyonu Arayüzü  22
+        * 3.3.1. Glassmorphic SaaS Düzeni ve Özel CSS Enjeksiyonu  22
+        * 3.3.2. Canlı Hisse Sorgulama Sayfası ve yfinance Çıkarım Hattı  24
+        * 3.3.3. Tarihsel Başarı Oranı (Win Rate) Karar Motoru  26
+        * 3.3.4. Sektörel Akran Kıyaslaması  28
+        * 3.3.5. İnteraktif Grafik Görselleştirici (Plotly)  30
+        * 3.3.6. Canlı Portföy Simülasyonu  32
+   * 3.4. Otomatik Geometrik Formasyon Tanıma Motoru  34
+        * 3.4.1. ZigZag İndikatörü ile Tepe ve Dip Noktalarının Çıkarılması  34
+        * 3.4.2. Omuz-Baş-Omuz (OBO) ve Ters Omuz-Baş-Omuz (TOBO) Formasyonları  35
+        * 3.4.3. Çanak-Kulp ve Bayrak Formasyonları  36
+        * 3.4.4. İkili Dip ve İkili Tepe Formasyonları  37
+* 4. PROJENİN YAYINA ALINMASI VE DAĞITIMI  38
+   * 4.1. Docker ile Konteynerleştirme  38
+   * 4.2. Canlı Sunucu Kurulumu ve Çalıştırma Komutları  39
+* 5. DOSYA HİYERARŞİSİ  39
+* 6. KISITLAR VE GELECEK ÇALIŞMALAR  40
+* TEKNOLOJİ YIĞINI  41
+* KAYNAKÇA  42
 
 # ÖZ
 
@@ -70,10 +71,9 @@ Geliştirilen bu proje, Borsa İstanbul genelini temsil eden **aktif BIST hisse 
 
 BIST hisselerinin 5 gün sonraki kapanış fiyatının bugünkünden yüksek olup olmayacağını (`Target_T5`) tahmin etmek üzere K-En Yakın Komşu (K-NN), Yapay Sinir Ağları (ANN - MLPClassifier), Rastgele Orman (Random Forest) ve XGBoost modelleri eğitilmiştir. Yapay Sinir Ağı (ANN) %55.68 doğruluk ve 0.6496 F1-Skor ile en yüksek tahminsel başarıyı sergilerken; genişletilmiş veri setinde eğitilen XGBoost modeli dengeli duyarlılık ve kesinlik metrikleriyle online tahmin motoru olarak seçilmiştir.
 
-Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bir web kontrol paneline (BorsaNeuron Dashboard) dönüştürülmüştür. Bu arayüz; kullanıcıların hisse kodu girerek `yfinance` üzerinden akan canlı teknik verilerle anlık inference tahminleri alabildiği, hisselerin **kendi geçmiş başarı uyumunu (Win Rate)** karar alma sürecine ağırlık olarak entegre ettiği ve TOBO, Fincan-Kulp, Flama, İkili Dip ve İkili Tepe gibi klasik formasyonları BIST genelinde tarayabildiği canlı bir platform sunmaktadır. Geliştirilen platform, Dockerfile ile konteynerleştirilmiş ve bulut ortamında yayına hazır hale getirilmiştir. GitHub dosya boyutu limitlerini aşmak amacıyla 318MB boyutundaki veri seti, xz formatında sıkıştırılarak 50.1MB'a düşürülmüş ve çalışma zamanında dinamik olarak okunacak şekilde entegre edilmiştir.
+Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bir web kontrol paneline (BorsaNeuron Dashboard) dönüştürülmüştür. Bu arayüz; kullanıcıların hisse kodu girerek `yfinance` üzerinden akan canlı teknik verilerle anlık çıkarım tahminleri alabildiği, hisselerin **kendi geçmiş başarı uyumunu (Win Rate)** karar alma sürecine ağırlık olarak entegre ettiği ve TOBO, Fincan-Kulp, Flama, İkili Dip ve İkili Tepe gibi klasik formasyonları BIST genelinde tarayabildiği canlı bir platform sunmaktadır. Geliştirilen platform, Dockerfile ile konteynerleştirilmiş ve bulut ortamında yayına hazır hale getirilmiştir. GitHub dosya boyutu limitlerini aşmak amacıyla 318MB boyutundaki veri seti, xz formatında sıkıştırılarak 50.1MB'a düşürülmüş ve çalışma zamanında dinamik olarak okunacak şekilde entegre edilmiştir.
 
 **Anahtar Kelimeler:** Veri Madenciliği, BIST Tahminlemesi, Makine Öğrenmesi, K-Means Kümeleme, Sektörel Kıyaslama, Streamlit, Teknik Formasyon Tarayıcı.
-
 
 # ABSTRACT
 
@@ -87,31 +87,30 @@ The machine learning models were integrated into an interactive web dashboard de
 
 **Keywords:** Data Mining, BIST Price Forecasting, Machine Learning, K-Means Clustering, Sector Benchmarking, Streamlit, Technical Pattern Scanner.
 
+# 1. GİRİŞ
 
-# 1. INTRODUCTION
+Bu çalışma, teknik analiz indikatörlerini ve makine öğrenmesi algoritmalarını kullanarak Borsa İstanbul (BIST) pay piyasalarındaki hisse senetlerinin 5 günlük gelecek fiyat yönünü tahmin etmeyi ve klasik grafik formasyonlarını otomatik olarak taramayı amaçlayan bütünsel bir karar destek ve veri analiz arayüzü olan **BorsaNeuron** platformunu sunmaktadır.
 
-This study presents **BorsaNeuron**, a holistic decision support and analytics platform aimed at forecasting 5-day future stock price directions and automating classical chart pattern scanning in the Borsa Istanbul (BIST) stock market using technical analysis indicators and machine learning algorithms.
+Kantitatif finans ve veri madenciliği prensiplerinin uygulandığı bu projede, Borsa İstanbul bünyesinde işlem gören aktif hisselere ait geniş bir tarihsel veri havuzu kullanılmıştır. Geliştirilen veri mühendisliği hatları öncelikle eksik verileri temizlemiş, ardından değişkenler arasında $0.90$ eşiğini aşan çoklu doğrusal bağlantıyı önlemek için Pearson korelasyon analizi gerçekleştirmiştir. Piyasadaki farklı teknik koşulları ve rejimleri yakalamak amacıyla, K-Means kümeleme algoritması indikatör durumlarını 5 benzersiz kümeye bölmüştür. Bu kümeler daha sonra Temel Bileşenler Analizi (PCA) yardımıyla iki boyutlu bir özellik uzayına yansıtılmış ve PC1 ile PC2'nin toplam varyansın %52.25'ini açıkladığı gösterilmiştir.
 
-Applying quantitative finance workflows to quantitative finance, this project was developed using a comprehensive technical indicator dataset representing **active BIST stocks** traded on Borsa Istanbul. Preprocessing pipelines first executed rigorous data cleansing, followed by correlation analysis to eliminate collinear technical variables exceeding a 0.90 threshold. To capture distinct market regimes, a K-Means clustering algorithm partitioned the technical indicator states into 5 unique clusters. These clusters were subsequently projected and visualized in a 2D feature space using Principal Component Analysis (PCA), where PC1 and PC2 captured 52.25% of the cumulative variance.
+Hisselerin 5 günlük fiyat yönü hedefini (`Target_T5`) tahmin etmek üzere K-En Yakın Komşu (K-NN), Yapay Sinir Ağları (ANN - MLPClassifier) ve Rastgele Orman (RF) modelleri optimize edilmiştir. Yapay Sinir Ağı (ANN) modeli %55.68 doğruluk oranı ve 0.6496 F1-Skoru ile test verilerinde en yüksek genel tahminsel doğruluğu sergilemiştir. Sistem verilerinin Haziran 2026 dönemine kadar genişletilmesiyle oluşturulan yüksek boyutlu üretim veri setinde ise dengeli hassasiyet ve duyarlılık (precision-recall) profili nedeniyle XGBoost Sınıflandırma algoritması çevrimiçi tahmin motoru olarak devreye alınmıştır.
 
-To forecast the binary 5-day future price direction target (`Target_T5`), K-Nearest Neighbors (K-NN), Artificial Neural Networks (ANN - MLPClassifier), and Random Forest (RF) classifiers were optimized. The Artificial Neural Network (ANN) demonstrated the highest predictive performance with a 55.68% accuracy and a 0.6496 F1-Score. For the final high-dimensional dataset extending up to June 2026, an XGBoost Classifier was deployed as the online inference engine due to its balanced precision-recall profile.
+Sayısal modelleme hatlarını canlı bir iş zekası aracına dönüştürmek amacıyla, Python Streamlit kütüphanesi kullanılarak interaktif bir web paneli (BorsaNeuron Dashboard) inşa edilmiştir. Platform kullanıcıların BIST hisse kodlarını dinamik olarak sorgulamalarına, `yfinance` üzerinden akan canlı fiyat verileriyle anlık tahminler üretmelerine, risk eşiklerini hissenin **tarihsel başarı oranına (Win Rate)** göre ayarlamalarına ve TOBO, OBO, Çanak-Kulp, Flama, İkili Dip ve İkili Tepe gibi geometrik fiyat oluşumlarını otomatik olarak taramalarına olanak tanır. GitHub'ın 100MB'lık doğrudan dosya yükleme limitini aşmak amacıyla, 318MB boyutundaki ham veri seti LZMA (xz) algoritmasıyla 50.1MB'a sıkıştırılmış ve sistem açılışında 6 saniyenin altında dinamik olarak bellek üzerinde açılacak şekilde entegre edilmiştir.
 
-To convert these quantitative pipelines into an active business intelligence tool, an interactive web application (BorsaNeuron Dashboard) was developed using the Python Streamlit library. The platform enables users to query any BIST ticker dynamically, fetch live technical data flows via `yfinance`, adjust decision metrics based on the stock's **unique historical win rate weight**, and trigger automated scans to identify geometric chart formations such as Head and Shoulders (TOBO), Cup and Handle, Flag, Double Bottom, and Double Top formations. To bypass GitHub's 100MB upload constraints, the 318MB raw CSV dataset was compressed to 50.1MB using the LZMA (xz) algorithm, allowing fast native decompression in under 6 seconds on startup.
+**Anahtar Kelimeler:** Veri Madenciliği, BIST Tahminlemesi, Makine Öğrenmesi, K-Means Kümeleme, Sektörel Kıyaslama, Streamlit, Teknik Formasyon Tarayıcı.
 
-**Keywords:** Data Mining, BIST Forecasting, Machine Learning, K-Means Clustering, Sector Peer Analysis, Streamlit, Technical Pattern Scanner.
+# 2. PROJE KURULUMU
 
-# 2. SETTING UP PROJECT
+Projeyi çalıştırmak ve model geliştirme süreçlerini yerel bilgisayarınızda tekrarlayabilmek için öncelikle uygun veri madenciliği ve programlama ortamının kurulması gerekmektedir. Bu araçlar bize veri önişleme komut dosyalarını çalıştırmak, modelleri eğitmek ve web panelini yayına almak için kararlı bir terminal sağlar. Kurulum aşamalarının ardından terminal aracılığıyla paket yüklemeleri gerçekleştirilecektir.
 
-In the project, first of all, we need to install the relevant software and libraries that provide a quantitative development environment on our local computer. These tools provide us with a shell to run modeling scripts, train classifiers, and boot the web dashboard. After preparing the environment, we will install the packages from our terminal.
+## 2.1. Kurulum Öncesi Gerekli Yazılımlar
+Sistem kararlılığını ve platformlar arası uyumluluğu sağlamak adına BorsaNeuron standart yazılım ortamlarını temel alır:
+*   **Python v3.9 veya v3.11:** Veri madenciliği kütüphanelerinin olgunluğu ve Streamlit arayüz bileşenlerinin kararlılığı sebebiyle tercih edilmiştir.
+*   **Visual Studio Code (VS Code) IDE:** Kod geliştirme, paket hata ayıklama ve yerel test çalıştırmalarında ana geliştirme ortamı olarak kullanılmıştır.
+*   **Git Sürüm Kontrol Sistemi:** Kodların versiyonlanması, yerel commit süreçleri ve GitHub uzak deposu ile senkronizasyon için kurulmuştur.
 
-## 2.1. Software Required Before Installation
-To ensure system stability and cross-platform compatibility, BorsaNeuron relies on standard programming environments:
-*   **Python v3.9 or v3.11:** Selected for its mature ecosystem in data mining and dashboard deployment.
-*   **Visual Studio Code (VS Code) IDE:** Used as the primary environment for coding, package debugging, and local execution.
-*   **Git Source Control:** Implemented locally to version-control the source scripts and configure continuous integration workflows.
-
-## 2.2. Initial Package Installations of the Project
-To avoid library version conflicts, a virtual environment was created. The dependencies are configured in `requirements.txt`:
+## 2.2. Projenin Başlangıç Kurulum Paketleri
+Kütüphanelerin sürüm çakışmalarını önlemek amacıyla izole bir sanal ortam oluşturulmuştur. Bağımlılıklar `requirements.txt` dosyasında şu şekilde tanımlanmıştır:
 
 ```text
 pandas>=1.5.0
@@ -126,130 +125,130 @@ plotly>=5.10.0
 xgboost>=1.6.0
 ```
 
-The environment is configured and launched via:
+Sanal ortamın yapılandırılması ve kütüphanelerin yüklenmesi için sırasıyla şu terminal komutları yürütülmüştür:
 
 ```powershell
-# Create virtual environment
+# Sanal ortam oluşturma
 python -m venv borsaneuron_env
 
-# Activate virtual environment
+# Sanal ortamı aktive etme (Windows PowerShell için)
 .\borsaneuron_env\Scripts\Activate.ps1
 
-# Upgrade pip manager
+# Pip paket yöneticisini güncelleme
 python -m pip install --upgrade pip
 
-# Install project dependencies
+# Proje kütüphanelerini yükleme
 pip install -r requirements.txt
 ```
 
-# 3. BUILDING BORSANEURON PLATFORM & MODULES
+# 3. BORSANEURON PLATFORMU VE MODÜLLERİNİN İNŞASI
 
-## 3.1. Quantitative Data Pipeline
+## 3.1. Nicel Veri Hattı
 
-### 3.1.1. Pearson Correlation Filtering
-Technical indicators derived from price variables often exhibit extreme multicollinearity. For example, short-term and long-term moving averages (e.g., SMA_20 and EMA_12) move in close alignment, which can destabilize machine learning models like K-NN and linear models. 
+### 3.1.1. Pearson Korelasyon Filtrelemesi
+Fiyat serilerinden üretilen teknik indikatörler doğası gereği yüksek düzeyde çoklu doğrusal bağlantı (multicollinearity) gösterir. Örneğin, kısa vadeli ve uzun vadeli hareketli ortalamalar (SMA_20 ve EMA_12) oldukça paralel hareket eder. Bu durum, veri seti içindeki bağımsız değişkenlerin varyansını bozarak K-NN veya doğrusal temelli modellerde kararsız tahmin katsayılarına ve aşırı öğrenmeye yol açar.
 
-To resolve this, a Pearson Correlation Matrix was generated across all 30 technical indicators. Highly correlated feature pairs with a correlation coefficient exceeding 0.90 were identified:
+Bu sorunu çözmek amacıyla, veri setindeki 30 teknik indikatörün tamamı arasında Pearson Korelasyon Matrisi oluşturulmuştur. Korelasyon katsayısı $0.90$ eşiğini aşan değişken çiftleri belirlenmiştir:
 
 $$|r_{ij}| > 0.90$$
 
-An upper-triangle matrix filter identified and removed these redundant variables, ensuring that only independent technical indicators were fed into our machine learning models. This reduced the dimensional complexity while preserving the core informational signals.
+Oluşturulan üst üçgen matris filtresi aracılığıyla birbirini tekrar eden yüksek korelasyonlu değişkenler elenmiştir. Böylece veri setinin boyutsal karmaşıklığı azaltılırken, modellerimizin temiz ve bağımsız sinyaller alması sağlanmıştır.
 
-![Pearson Correlation Heatmap](images/04_korelasyon_heatmap.png)
-*Figure 3.1: Pearson Correlation Heatmap detailing correlation levels across the technical features.*
+![Pearson Korelasyon Isı Haritası](images/04_korelasyon_heatmap.png)
+*Şekil 3.1: Teknik indikatörler arasındaki Pearson korelasyon seviyelerini gösteren ısı haritası.*
 
-### 3.1.2. K-Means Market Segmentation
-Unsupervised learning was applied using the K-Means algorithm to partition stock states into distinct market regimes based on their normalized technical indicators. Feature standardization was executed prior to clustering:
+### 3.1.2. K-Means Pazar Segmentasyonu
+Gözetimsiz öğrenme metodolojisi kapsamında K-Means algoritması uygulanarak, hisse senetlerinin teknik gösterge durumlarına göre pazar rejimleri kümelenmiştir. Kümeleme öncesinde verilerin normalize edilmesi sağlanmıştır:
 
 $$z = \frac{x - \mu}{\sigma}$$
 
-An Elbow analysis was performed to determine the optimal number of clusters. Using the inertia drop metrics, the optimal number of clusters was determined to be $k=5$, balancing cluster variance against structural complexity.
+Optimum küme sayısını matematiksel olarak doğrulamak üzere Elbow (Dirsek) analizi yapılmıştır. Küme sayısı arttıkça grup içi hata kareler toplamındaki (inertia) düşüş hızı incelenmiş ve inertia eğrisinin büküldüğü dirsek noktası olan **$k=5$** optimum küme sayısı olarak seçilmiştir.
 
-![Elbow Method](images/elbow_method.png)
-*Figure 3.2: Elbow method showing inertia drop rates across clusters.*
+![Elbow Metodu](images/elbow_method.png)
+*Şekil 3.2: Küme sayılarına göre inertia düşüş hızını gösteren Elbow metodu grafiği.*
 
-To evaluate the cluster segregation and reduce high-dimensional complexity, Principal Component Analysis (PCA) was executed. PC1 and PC2 explain a total of 52.25% of overall database variance.
+Küme ayrışımını doğrulamak ve yüksek boyutlu indikatör uzayını görselleştirmek adına Temel Bileşenler Analizi (PCA) yürütülmüştür. Elde edilen ilk iki temel bileşen (PC1 ve PC2), toplam varyansın %52.25'ini tek başına açıklamaktadır.
 
-![K-Means Clustering projected via PCA 2D](images/05_kmeans_pca.png)
-*Figure 3.3: PCA 2D scatter visualization of K-Means clusters ($k=5$).*
+![PCA 2D K-Means Kümeleri](images/05_kmeans_pca.png)
+*Şekil 3.3: K-Means kümelerinin PCA 2D uzayındaki dağılım grafiği ($k=5$).*
 
-### 3.1.3. LZMA xz Data Compression Workaround
-When extending BorsaNeuron's dataset up to June 2026, the inclusion of hundreds of active stocks resulted in a dataset (`bist_ai_dataset_real_30cols.csv`) size of **318MB**. GitHub imposes a strict **100MB limit** for direct file pushes, causing standard git push operations to time out and fail with HTTP 408 RPC errors.
+### 3.1.3. LZMA xz Veri Sıkıştırma Çözümü
+Borsa İstanbul genelindeki aktif hisselerin tarihsel verileri Haziran 2026 dönemine kadar genişletildiğinde, ham veri seti dosyasının (`bist_ai_dataset_real_30cols.csv`) boyutu **318MB** seviyesine ulaşmıştır. GitHub, sürüm kontrol sisteminde doğrudan dosya yüklemeleri için **100MB sınırlandırması** uygulamaktadır. Bu durum, sürüm güncellemeleri sırasında Git push işlemlerinin RPC hatalarıyla kesilmesine ve başarısız olmasına sebep olmuştur.
 
-To address this limitation without introducing external database dependency overhead, we implemented a compression pipeline. The raw CSV dataset was compressed using the **LZMA (xz) compression algorithm**, reducing the file size to **50.1MB**. 
+Sisteme harici bir SQL veya veri tabanı sunucusu bağlamanın getireceği ek bakım maliyetleri ve gecikme sürelerini önlemek amacıyla, yerel bir veri sıkıştırma hattı tasarlanmıştır. Ham veri seti Python ortamında **LZMA (xz) sıkıştırma algoritması** ile sıkıştırılarak boyutu **50.1MB** seviyesine indirilmiştir.
 
-To maintain runtime performance, we modified the data loading pipeline in `src/app.py` to support native pandas decompression:
+Streamlit arayüzünün başlangıç hızını optimize etmek ve çalışma zamanında doğrudan veriyi okuyabilmek için `src/app.py` veri yükleme hattı dinamik pandas dekompresyonunu destekleyecek şekilde güncellenmiştir:
 ```python
-# Read compressed xz dataset on the fly
+# Sıkıştırılmış xz veri setini doğrudan okuma hattı
 df = pd.read_csv("bist_ai_dataset_real_30cols.csv.xz")
 ```
-This architecture reduced the file size by **84%**, bringing it well below the GitHub limit, while maintaining a startup loading speed of **5.7 seconds**.
+Bu mimari yaklaşım sayesinde dosya boyutu **%84** oranında azaltılarak GitHub limitlerinin altına çekilmiş, sistemin yerel diskten okuma ve belleğe yükleme süresi ise **5.7 saniye** gibi son derece verimli bir seviyede tutulmuştur.
 
-## 3.2. Supervised Machine Learning Engines
+## 3.2. Denetimli Makine Öğrenmesi Motorları
 
-### 3.2.1. Hyperparameter Optimization (K-NN & GridSearchCV)
-The K-Nearest Neighbors (K-NN) classifier was implemented as a baseline instance-based model. Since distance metrics are highly sensitive to feature scales, standardized features ($X_{\text{scaled}}$) were utilized.
+### 3.2.1. Hiperparametre Optimizasyonu (K-NN ve GridSearchCV)
+K-En Yakın Komşu (K-NN) algoritması, veri noktalarının mesafe benzerliklerine dayalı olarak sınıflandırma yapan bir yöntemdir. Mesafe hesaplamaları bağımsız değişkenlerin ölçeklerine aşırı duyarlı olduğundan, özellikler öncelikle normalize edilmiş ($X_{	ext{scaled}}$) şekilde modele sunulmuştur.
 
-To optimize the neighborhood size parameter ($k$), a grid search with 5-fold cross-validation was performed:
+K komşuluk parametresinin en iyi değerini bulmak için 5 katlı çapraz doğrulama (5-fold cross-validation) ile geniş bir hiperparametre arama uzayı taranmıştır:
 
-$$\text{Search Space} = k \in \{3, 5, 7, 9, 11, 15, 21\}$$
+$$	ext{Arama Uzayı} = k \in \{3, 5, 7, 9, 11, 15, 21\}$$
 
-The optimal hyperparameter was determined to be **$k=21$**, achieving the highest cross-validated accuracy of 54.01%.
+GridSearchCV optimizasyonu sonucunda, aşırı öğrenmeyi (overfitting) en aza indiren ve en yüksek çapraz doğrulama başarısını veren komşuluk parametresi **$k=21$** olarak belirlenmiş ve %54.01 test doğruluğu elde edilmiştir.
 
-![K-NN GridSearchCV Tuning](images/07_gridsearch_knn.png)
-*Figure 3.4: K-NN GridSearchCV accuracy values plotted against neighborhood size parameter.*
+![K-NN GridSearchCV Doğrulaması](images/07_gridsearch_knn.png)
+*Şekil 3.4: K-NN modelinde komşuluk sayısına göre çapraz doğrulama doğruluk oranları.*
 
-### 3.2.2. Random Forest Gini Feature Importances
-The second model implemented was the Random Forest (RF) classifier. A forest of 100 estimators was trained. The Random Forest model achieved a test accuracy of 53.35% and an F1-Score of 0.6367.
+### 3.2.2. Random Forest Gini Özellik Önem Dereceleri
+İkinci olarak eğitilen model olan Rastgele Orman (Random Forest) sınıflandırıcısında 100 karar ağacından oluşan bir orman yapısı kurulmuştur. Random Forest modeli test verileri üzerinde %53.35 doğruluk oranı ve 0.6367 F1-Skoru sergilemiştir.
 
-Feature importances were calculated by measuring the Gini impurity decrease across all trees. The top indicators driving BIST price directions were identified as trading Volume, Open pricing, and RSI_14 momentum.
+Hisse senedi fiyat yönü tahmininde en belirleyici teknik göstergeleri tespit etmek amacıyla karar ağaçlarındaki Gini saflık derecesi azalışları (Gini impurity decrease) izlenmiştir. Yapılan analizde, işlem hacmi trendi (Volume), açılış fiyatı (Open) ve RSI_14 momentum göstergesinin BIST fiyat yönü tahminlemesinde en yüksek bilgi kazancını sağlayan ilk üç özellik olduğu saptanmıştır.
 
-![Random Forest Feature Importance](images/08_feature_importance.png)
-*Figure 3.5: Random Forest Feature Importance rating.*
+![Random Forest Özellik Önemleri](images/08_feature_importance.png)
+*Şekil 3.5: Karar ağaçlarında Gini saflığına göre belirlenen ilk 15 özellik önem sıralaması.*
 
-### 3.2.3. Artificial Neural Networks (ANN MLPClassifier)
-A Multi-Layer Perceptron (MLP) Artificial Neural Network was implemented to capture non-linear, complex mappings. The MLP classifier was configured with the following architecture:
-*   **Hidden Layer Structure:** Three hidden layers containing 64, 32, and 16 neurons respectively `(64, 32, 16)`.
-*   **Activation Function:** Rectified Linear Unit (ReLU).
-*   **Optimization Solver:** Adam solver with a batch size of 128.
-*   **Maximum Iterations:** 100 epochs.
+### 3.2.3. Yapay Sinir Ağları (ANN MLPClassifier)
+Doğrusal olmayan daha karmaşık desenleri yakalamak amacıyla Çok Katmanlı Algılayıcı (Multi-Layer Perceptron) yapısında bir Yapay Sinir Ağı (ANN) mimarisi tasarlanmıştır. Model mimarisi şu parametrelerle yapılandırılmıştır:
+*   **Gizli Katman Yapısı:** Sırasıyla 64, 32 ve 16 nöron içeren üç katmanlı `(64, 32, 16)` yapı.
+*   **Aktivasyon Fonksiyonu:** Doğrusal olmayan geçişleri modellemek için Rectified Linear Unit (ReLU).
+*   **Optimizasyon Çözücü:** Gradyan iniş hızını ayarlamak için Adam çözücü ve 128 batch boyutu.
+*   **Maksimum Epok:** Kararlı bir yakınsama için 100 epoch.
 
-The MLP neural network demonstrated high predictive performance, achieving a test accuracy of 55.68% and an F1-Score of 0.6496.
+Yapay Sinir Ağı modeli test verilerinde yüksek başarı göstererek %55.68 doğruluk oranı ve 0.6496 F1-Skoru elde etmiştir.
 
-### 3.2.4. Core Production XGBoost Classifier
-XGBoost Classifier was selected as BorsaNeuron's core online inference engine. Despite having a slightly lower raw accuracy (51.31% vs 52.01% for RF), XGBoost yielded a superior F1-score (**0.4836** vs **0.4496**). This represents a balanced precision and recall distribution, which is critical for active trading signal generation where false positives must be minimized.
+### 3.2.4. Üretim Aşaması XGBoost Sınıflandırma Modeli
+BorsaNeuron platformunun çevrimiçi canlı tahmin motoru olarak XGBoost algoritması seçilmiştir. Yapay Sinir Ağı (ANN) ham doğrulukta biraz daha yüksek görünse de (%55.68 vs %51.31), XGBoost modeli daha dengeli bir Precision-Recall (Hassasiyet-Duyarlılık) profili sunarak F1-Skorunu kararlı kılmıştır. Finansal trading sistemlerinde 'false positive' (yükselecek tahmini verilip düşen hisse) doğrudan sermaye kaybına yol açtığı için, XGBoost'un yüksek hassasiyetli yapısı tercih edilmiştir.
 
-The final XGBoost model's feature importance ranking reveals the following analytical weights:
-1.  **Resistance_Level** (5.71%) — Breakout level marker.
-2.  **Support_Level** (5.60%) — Structural price floors.
-3.  **Pat_Yok** (5.58%) — Indicates periods of trend-less consolidation.
-4.  **Pat_OBO (Head & Shoulders)** (5.27%) — Bearish reversal signal.
-5.  **SMA_50** (5.26%) — Medium-term trend benchmark.
-6.  **SMA_200** (5.10%) — Major institutional support and trend line.
-7.  **Pat_TOBO (Inverse Head & Shoulders)** (5.05%) — Strong bullish reversal pattern.
-8.  **BB_Middle** (4.90%) & **BB_Lower** (4.89%) — Standard deviation volatility boundaries.
+Üretim aşamasındaki XGBoost modelinin özellik önem analizinde ilk sıraları şu teknik göstergeler almıştır:
+1.  **Resistance_Level** (%5.71) — Direnç kırılım hatları.
+2.  **Support_Level** (%5.60) — Fiyat taban destek seviyeleri.
+3.  **Pat_Yok** (%5.58) — Belirgin bir geometrik formasyonun bulunmadığı yatay dönemler.
+4.  **Pat_OBO** (%5.27) — Omuz-Baş-Omuz düşüş formasyon sinyali.
+5.  **SMA_50** (%5.26) — Orta vadeli kurumsal eğilim göstergesi.
+6.  **SMA_200** (%5.10) — Uzun vadeli kurumsal destek ve ana eğilim çizgisi.
+7.  **Pat_TOBO** (%5.05) — Boğa piyasası dönüş sinyali olan Ters OBO formasyonu.
+8.  **BB_Middle** (%4.90) ve **BB_Lower** (%4.89) — Bollinger Bantları volatilite sınırları.
 
-![Model Performance Comparison](images/10_model_karsilastirma.png)
-*Figure 3.6: Performance comparison bar chart detailing Accuracy and F1-Scores.*
+![Model Karşılaştırma Grafiği](images/10_model_karsilastirma.png)
+*Şekil 3.6: Eğitilen makine öğrenmesi modellerinin Doğruluk ve F1-Skoru metriklerine göre karşılaştırma grafiği.*
 
-## 3.3. Streamlit Workstation Interface
+## 3.3. Streamlit İş İstasyonu Arayüzü
 
-### 3.3.1. Glassmorphic SaaS Layout & Custom CSS Injection
-To bridge quantitative models with human execution, a premium web application was built using Streamlit. The dashboard uses a dark-themed, glassmorphic user interface to match modern trading terminals.
+### 3.3.1. Glassmorphic SaaS Düzeni ve Özel CSS Enjeksiyonu
+Sayısal modellerin son kullanıcı tarafından kullanılabilmesi amacıyla, Streamlit kütüphanesi üzerinde özelleştirilmiş bir web paneli geliştirilmiştir. Kullanıcı deneyimini (UX) artırmak adına, modern trading terminallerine uygun koyu tema (dark mode) üzerinde yarı saydam cam efekti (glassmorphism) sunan özel CSS kodları tasarlanarak uygulamaya enjekte edilmiştir.
 
-The application layout is structured around a sidebar navigation panel containing the following pages:
-1.  **Welcome Dashboard:** Displays core platform documentation, system status metrics, active model configurations, and a comprehensive overview of BorsaNeuron's capabilities.
-2.  **Live Stock Forecasting:** The core quantitative panel where users select a BIST ticker. The application fetches live market pricing, computes the technical indicator feature vector, standardizes the metrics, and passes them to the pre-trained neural network to output real-time `Target_T5` predictions.
-3.  **Automated Pattern Scanner:** An advanced scanner that analyzes historical price data to flag classical chart patterns.
+Web arayüzünün sol tarafındaki navigasyon barı şu sayfaları içerir:
+1.  **Karşılama Paneli (Welcome Dashboard):** Sistemin genel durumunu, aktif makine öğrenmesi parametrelerini, veri seti özetini ve genel kullanım rehberini içerir.
+2.  **Canlı Hisse Tahmini (Live Stock Forecasting):** Kullanıcının hisse kodu girerek yapay zeka çıkarımlarını canlı fiyat verileriyle izlediği ana ekrandır.
+3.  **Otomatik Formasyon Tarayıcı (Automated Pattern Scanner):** BIST genelinde formasyon oluşturan hisseleri tarayan ve listeleyen ekrandır.
 
-![BorsaNeuron UI Welcome Dashboard](images/borsaneuron_ui_dashboard.png)
-*Figure 3.7: BorsaNeuron interactive platform welcome dashboard UI.*
+![BorsaNeuron Karşılama Paneli](images/borsaneuron_ui_dashboard.png)
+*Şekil 3.7: BorsaNeuron interaktif SaaS karşılama arayüzü.*
 
-### 3.3.2. Live Stock Query Page & yfinance Inference Pipeline
-In the live Streamlit backend (`app.py`), the serializations are loaded into memory and yfinance handles live price streams:
+### 3.3.2. Canlı Hisse Sorgulama Sayfası ve yfinance Çıkarım Hattı
+Kullanıcı arayüz üzerinden bir BIST hisse kodu sorguladığında, Streamlit arka planda `yfinance` üzerinden hissenin son 1 yıllık günlük mum verilerini indirir. Teknik indikatör vektörünü hesapladıktan sonra `best_scaler_acm465.joblib` ile normalize eder ve `best_model_acm465.joblib` MLP modeline göndererek anlık çıkarım (inference) tahmini üretir:
 
 ```python
-# Real-time loading and inference
+# Canlı veri çekme ve model çıkarım hattı
 import yfinance as yf
 import joblib
 
@@ -265,86 +264,83 @@ def get_live_forecast(ticker):
     return prediction, probability
 ```
 
-This pipeline allows the web dashboard to instantly generate active market predictions for any BIST stock.
+Bu veri hattı sayesinde web panelinde anlık piyasa verilerine dayalı kararlar saniyeler içinde üretilmektedir.
 
-![Live Stock Forecasting Panel](images/borsaneuron_hisse_sorgu_real.png)
-*Figure 3.8: Real-time stock forecast panel UI.*
+![Canlı Hisse Tahmin Arayüzü](images/borsaneuron_hisse_sorgu_real.png)
+*Şekil 3.8: Canlı hisse sorgulama ve yapay zeka tahmin paneli arayüzü.*
 
-### 3.3.3. Historical Win-Rate Decision Engine
-A primary innovation in this terminal is the **Historical Stock Win Rate Analyzer**. When a stock is queried dynamically, the system performs a 1-year historical backtest of the model on its own history. It calculates the stock's specific **Win Rate** under the AI strategy:
+### 3.3.3. Tarihsel Başarı Oranı (Win Rate) Karar Motoru
+BorsaNeuron'un en özgün özelliklerinden biri olan **Tarihsel Başarı Oranı Karar Motoru**, makine öğrenmesi modelinin her hisse senedinde aynı kararlılıkta çalışamayacağı gerçeği üzerine kurulmuştur. Sistem, sorgulanan hissenin son 1 yıllık tarihsel verisinde modelin ürettiği alım sinyallerinin geriye dönük doğruluk oranını hesaplar:
 
-$$\text{Win Rate} = \frac{\text{Correct Bullish Forecasts}}{\text{Total Bullish Signals}} \times 100$$
+$$	ext{Başarı Oranı} = \frac{	ext{Doğru Çıkan Yükseliş Sinyalleri}}{	ext{Toplam Üretilen Yükseliş Sinyalleri}} 	imes 100$$
 
-The system displays this as a dedicated decision factor. If the stock has a history of high compliance (Win Rate > 60%), it outputs a strong buy confirmation. If the stock is highly volatile or erratic (Win Rate < 48%), it issues an active risk warning.
+Bu değer karar sürecine bir filtre olarak eklenir. Eğer hissenin tarihsel başarı oranı %60'tan büyükse modele ek alım onayı verilir, %48'in altındaysa sistem kullanıcıya yüksek risk uyarısı gösterir.
 
-### 3.3.4. Sector Peer Benchmarking
-The terminal groups stocks into sectors (Holding, Banking, Industrial, Energy, Logistics, etc.) and compares the queried stock's live metrics against the sector's historical averages. This provides direct macro-context to traders.
+### 3.3.4. Sektörel Akran Kıyaslaması
+Platform sorgulanan hisseyi kendi sektörüyle (Bankacılık, Sanayi, Enerji, Ulaştırma vb.) gruplandırarak, hissenin mevcut teknik göstergelerini (RSI, Hacim Trendi vb.) sektör ortalamalarıyla kıyaslar. Bu sayede makro düzeyde sektörel bir karşılaştırma imkanı sunulur.
 
-### 3.3.5. Interactive Candlestick Plotly Visualizer
-BorsaNeuron renders a Plotly Candlestick chart overlaid with Bollinger Bands and moving averages. Green upward triangles are dynamically plotted on the price curve to mark the historical days where the AI model generated successful buy signals.
+### 3.3.5. İnteraktif Grafik Görselleştirici (Plotly)
+BorsaNeuron, Bollinger Bantları ve hareketli ortalamalarla zenginleştirilmiş etkileşimli bir Plotly şamdan (candlestick) grafiği çizer. Grafiğin üzerinde, yapay zekanın geçmişte ürettiği başarılı alım noktaları yeşil yukarı yönlü üçgenlerle dinamik olarak işaretlenir.
 
-### 3.3.6. Live Portfolio Backtest Simulator
-A portfolio growth simulator is integrated into the stock query panel. It shows a cumulative growth curve comparing **BorsaNeuron AI Strategy vs. Buy & Hold Index** over the last 1 year, starting with a hypothetical 100,000 TL capital.
+### 3.3.6. Canlı Portföy Simülasyonu
+Arayüze entegre edilmiş portföy simülatörü, başlangıçta 100.000 TL sermaye ile yola çıkıldığında **BorsaNeuron Yapay Zeka Stratejisi vs. Al ve Tut (Buy & Hold)** getiri eğrilerini son 1 yıllık tarihsel veri üzerinde karşılaştırmalı olarak simüle eder.
 
-![What-If Scenario Simulation Panel](images/borsaneuron_scenario_ui.png)
-*Figure 3.9: What-If Scenario UI, displaying dynamic simulation sliders.*
+![Senaryo Analizi ve Karar Arayüzü](images/borsaneuron_scenario_ui.png)
+*Şekil 3.9: Streamlit dinamik simülasyon kaydırıcıları ve senaryo analizi paneli.*
 
-![Market Regime Cluster Profiles Analysis](images/senaryo_kume_profil.png)
-*Figure 3.10: K-Means cluster profile density analysis.*
+![K-Means Küme Profilleri Yoğunluk Analizi](images/senaryo_kume_profil.png)
+*Şekil 3.10: K-Means kümeleme profillerinin indikatör yoğunluk analiz grafiği.*
 
-![Prophet Live Forecasting](images/prophet_forecast_real.png)
-*Figure 3.11: Live Prophet price path forecast interface.*
+![Prophet Fiyat Tahmin Hattı](images/prophet_forecast_real.png)
+*Şekil 3.11: Canlı Prophet zaman serisi fiyat tahmin arayüzü.*
 
-![Algorithmic Trading Backtest Strategy Performance](images/11_backtest.png)
-*Figure 3.12: Backtesting performance charting comparing active BorsaNeuron prediction signals.*
+![Algoritmik Portföy Backtest Getiri Karşılaştırması](images/11_backtest.png)
+*Şekil 3.12: BorsaNeuron yapay zeka sinyalleri ile Al ve Tut stratejisinin getiri karşılaştırma grafiği.*
 
-## 3.4. Automated Geometric Pattern Recognition Engine
+## 3.4. Otomatik Geometrik Formasyon Tanıma Motoru
 
-### 3.4.1. Peak and Trough Extraction via ZigZag Indicator
-To supplement statistical forecasts, BorsaNeuron features an automated geometric chart pattern recognition engine located in `src/analyzer.py`. The scan uses raw price swing points calculated via a ZigZag indicator. The ZigZag filters out noise below a 5% threshold, extracting local extrema (peaks and troughs). Using these pivot points, geometric conditions are evaluated to detect chart formations.
+### 3.4.1. ZigZag İndikatörü ile Tepe ve Dip Noktalarının Çıkarılması
+İndikatör tahminlerine ek olarak, BorsaNeuron `src/analyzer.py` modülünde yer alan matematiksel bir formasyon tarayıcı içerir. Tarayıcı, fiyat hareketlerindeki %5'in altındaki küçük gürültüleri filtreleyerek yerel tepe ve dip noktalarını (extrema) çıkaran bir ZigZag algoritması kullanır. Tespit edilen bu pivot noktaları geometrik eşik kurallarına tabi tutularak klasik formasyonlar taranır.
 
-### 3.4.2. Head and Shoulders (OBO) & Inverted Head and Shoulders (TOBO)
-*   **TOBO (Inverted Head & Shoulders):** Identified by finding a sequence of three consecutive troughs ($L_1$, $L_2$, $L_3$) where the center trough (Head) is lower than the left and right troughs (Shoulders):
-    $$L_2 < L_1 \quad \text{and} \quad L_2 < L_3$$
-    The intermediate peaks form the neckline. The neckline slope is evaluated to confirm a breakout.
-*   **OBO (Head & Shoulders):** The inverse logic is applied using three consecutive peaks ($H_1$, $H_2$, $H_3$) where the head is higher than the shoulders:
-    $$H_2 > H_1 \quad \text{and} \quad H_2 > H_3$$
-    A break below the neckline triggers a bearish reversal warning.
+### 3.4.2. Omuz-Baş-Omuz (OBO) ve Ters Omuz-Baş-Omuz (TOBO) Formasyonları
+*   **TOBO (Ters Omuz-Baş-Omuz):** Yan yana oluşan üç ardışık dip noktası ($L_1$, $L_2$, $L_3$) analiz edilir. Ortadaki dip noktasının (Baş) sağ ve soldaki diplerden (Omuzlar) daha aşağıda olması şartı aranır:
+    $$L_2 < L_1 \quad 	ext{ve} \quad L_2 < L_3$$
+    Bu diplerin arasındaki tepelerden geçen boyun çizgisinin eğimi kontrol edilerek kırılım teyit edilir.
+*   **OBO (Omuz-Baş-Omuz):** Üç ardışık tepe noktası ($H_1$, $H_2$, $H_3$) kullanılarak ters mantık işletilir:
+    $$H_2 > H_1 \quad 	ext{ve} \quad H_2 > H_3$$
+    Boyun çizgisinin aşağı yönlü kırılması durumunda düşüş sinyali üretilir.
 
-### 3.4.3. Cup & Handle & Flag Formations
-*   **Cup & Handle:** Detected by identifying a rounded U-shaped base (the cup) followed by a short, downward-slanted consolidation channel (the handle). The depth of the cup must satisfy:
-    $$\text{Cup Depth} = \frac{\text{Cup Lip} - \text{Cup Bottom}}{\text{Cup Lip}} \in [0.15, 0.50]$$
-    The handle must not retrace more than 50% of the cup's depth.
-*   **Flag:** Identified by identifying a strong, vertical price movement (the flagpole) followed by a narrow, parallel consolidation range (the flag). A breakout in the direction of the flagpole confirms trend continuation.
+### 3.4.3. Çanak-Kulp ve Bayrak Formasyonları
+*   **Çanak-Kulp:** U şeklinde geniş bir çanak dip yapısı ve ardından gelen daha sığ bir kulp konsolidasyonu aranır. Çanağın derinliği şu koşulu sağlamalıdır:
+    $$	ext{Çanak Derinliği} = \frac{	ext{Çanak Kenarı} - 	ext{Çanak Dibi}}{	ext{Çanak Kenarı}} \in [0.15, 0.50]$$
+    Kulp yapısı çanak derinliğinin %50'sinden daha fazla aşağı sarkmamalıdır.
+*   **Bayrak:** Fiyatta görülen sert ve dikey bir yükselişin (bayrak direği) ardından oluşan dar ve paralel bir konsolidasyon kanalı (bayrak) tespit edilir. Kanalın yukarı yönlü kırılması trendin devam edeceğini teyit eder.
 
-### 3.4.4. Double Bottom & Double Top Formations
-*   **Double Bottom:** To detect a double bottom pattern, the analyzer searches for a sequence of two consecutive troughs ($L_1$, $L_2$) and an intervening peak ($H_1$). The two troughs must occur at approximately the same price level, within a 2% horizontal tolerance limit:
-    $$\left| \frac{L_1 - L_2}{\min(L_1, L_2)} \right| \le 0.02$$
-    The intervening peak ($H_1$) forms the resistance neckline. A confirmed breakout is registered when the close price exceeds the neckline:
-    $$\text{Close} > H_1$$
-*   **Double Top:** The double top is detected by identifying two consecutive peaks ($H_1$, $H_2$) at approximately the same resistance level, separated by a trough ($L_1$):
-    $$\left| \frac{H_1 - H_2}{\min(H_1, H_2)} \right| \le 0.02$$
-    A bearish breakout is flagged when the close price falls below the support neckline:
-    $$\text{Close} < L_1$$
+### 3.4.4. İkili Dip ve İkili Tepe Formasyonları
+*   **İkili Dip:** İki ardışık dip noktasının ($L_1$, $L_2$) birbirine çok yakın fiyat seviyelerinde oluşması koşulu aranır. Yatay tolerans limiti maksimum %2 olarak belirlenmiştir:
+    $$\left| \frac{L_1 - L_2}{\min(L_1, L_2)} 
+ight| \le 0.02$$
+    Aradaki tepenin oluşturduğu direnç boyun çizgisinin ($H_1$) yukarı yönlü geçilmesiyle formasyon tetiklenir:
+    $$	ext{Kapanış Fiyatı} > H_1$$
+*   **İkili Tepe:** İki ardışık tepe noktasının ($H_1$, $H_2$) yaklaşık aynı direnç seviyesinde oluşması durumudur:
+    $$\left| \frac{H_1 - H_2}{\min(H_1, H_2)} 
+ight| \le 0.02$$
+    Aralarındaki dip noktası olan boyun desteğinin ($L_1$) aşağı yönlü kırılması formasyonu onaylar:
+    $$	ext{Kapanış Fiyatı} < L_1$$
 
-# 4. DEPLOYING PROJECT
+# 4. PROJENİN YAYINA ALINMASI VE DAĞITIMI
 
-Following modeling and dashboard construction, BorsaNeuron was containerized using Docker to ensure consistent execution across local developer workstations and cloud production servers.
+Geliştirilen BorsaNeuron yazılımının geliştirici bilgisayarlarında ve canlı sunucu ortamlarında tutarlı bir şekilde çalışabilmesi amacıyla Docker konteynerizasyonu uygulanmıştır.
 
-## 4.1. Docker Containerization
-A standardized `Dockerfile` was created:
+## 4.1. Docker ile Konteynerleştirme
+Sistem bağımlılıklarını izole eden ve hafif bir çalışma ortamı sunan `Dockerfile` hazırlanmıştır:
 
 ```dockerfile
 FROM python:3.9-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    software-properties-common \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y     build-essential     curl     software-properties-common     git     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
@@ -353,73 +349,84 @@ HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 ENTRYPOINT ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
-## 4.2. Production Setup and Server Run Commands
-To build the image and spin up the production container, the following commands are executed:
+## 4.2. Canlı Sunucu Kurulumu ve Çalıştırma Komutları
+Docker imajını oluşturmak ve konteyneri arka planda çalıştırmak için sırasıyla şu komut satırları kullanılır:
 
 ```bash
-# Build the Docker image
+# Docker imajını derleme
 docker build -t borsaneuron-app:latest .
 
-# Run the container in detached mode with port redirection
+# Port yönlendirmesi yaparak konteyneri arka planda (detached) başlatma
 docker run -d -p 80:8501 --name borsaneuron-prod borsaneuron-app:latest
 ```
 
-This maps port 8501 of the Streamlit application container directly to port 80 of the host machine, making BorsaNeuron accessible via standard HTTP.
+Bu sayede Streamlit'in varsayılan 8501 portu doğrudan ana makinenin 80 portuna (HTTP) yönlendirilerek web sitesi yayına alınmış olur.
 
-# 5. FILE HIERARCHY
+# 5. DOSYA HİYERARŞİSİ
 
-The complete directory tree of the BorsaNeuron graduation project is structured as follows, separating offline modeling from the online Streamlit interface:
+BorsaNeuron projesinin veri hazırlığı, model eğitimi ve Streamlit kullanıcı arayüzü dosyalarını ayıran klasör dizin yapısı aşağıda sunulmuştur:
 
 ```text
 C:/Users/ibrah/.gemini/antigravity/scratch/ipo_analyzer/
 ├── .streamlit/
-│   └── config.toml                  # UI configuration settings
-├── bist_ai_dataset_real_30cols.csv.xz# Compressed xz dataset (50.1MB)
-├── best_scaler_acm465.joblib         # Serialized StandardScaler weights
-├── best_model_acm465.joblib          # Serialized MLP Neural Network weights
-├── acm465_proje.py                   # Offline Data Mining and Modeling Pipeline
-├── requirements.txt                  # Python package dependency list
-├── start.bat                         # Startup shortcut batch script
-├── Dockerfile                        # Docker container manifest
+│   └── config.toml                  # Streamlit görsel tema ayarları
+├── bist_ai_dataset_real_30cols.csv.xz# LZMA ile sıkıştırılmış veri seti (50.1MB)
+├── best_scaler_acm465.joblib         # Kaydedilmiş standart ölçekleyici ağırlıkları
+├── best_model_acm465.joblib          # Kaydedilmiş MLP Yapay Sinir Ağı ağırlıkları
+├── acm465_proje.py                   # Çevrimdışı modelleme ve test komut dosyası
+├── requirements.txt                  # Bağımlı olunan Python kütüphaneleri listesi
+├── start.bat                         # Kolay çalıştırma kısayolu batch dosyası
+├── Dockerfile                        # Docker konteyner yapılandırması
 ├── src/
 │   ├── __init__.py
-│   ├── app.py                        # Streamlit Web Application entrypoint
-│   ├── theme.py                      # UI Color schemas and styling utilities
-│   ├── data_manager.py               # Data loaders and yfinance API client
-│   ├── earnings_data.py              # Macro-corporate data structures
-│   ├── macro_data.py                 # Macroeconomic data parsers
-│   └── verify_tobo_strict.py         # TOBO and Cup-Handle pattern scanners
+│   ├── app.py                        # Streamlit web uygulaması ana dosyası
+│   ├── theme.py                      # Glassmorphic UI renk kodları ve stiller
+│   ├── data_manager.py               # yfinance veri çekme ve önişleme modülü
+│   ├── earnings_data.py              # Şirket finansal veri modelleri
+│   ├── macro_data.py                 # Makroekonomik gösterge veri yapısı
+│   └── verify_tobo_strict.py         # TOBO ve Çanak formasyon test ve tarama kodları
 └── tests/
-    └── test_features.py              # Unit tests for technical indicator vectors
+    └── test_features.py              # İndikatör doğruluğunu sınayan birim testleri
 ```
 
-# TECH STACK
+# 6. KISITLAR VE GELECEK ÇALIŞMALAR
 
-| Stack Layer | Technologies Used | Purpose |
-|-------------|-------------------|---------|
-| **Core Programming** | Python v3.9+ | Main scientific computation language |
-| **Data Engineering** | Pandas, NumPy | Data parsing, array operations, features calculation |
-| **Data Fetching** | yFinance API | Dynamic streaming of daily candle data |
-| **Data Mining & Clustering** | Scikit-learn (K-Means, PCA) | Market regime classification and dimensionality reduction |
-| **Predictive Modeling** | MLPClassifier (ANN), RandomForest, K-NN | Future price direction classification |
-| **Serialization** | Joblib | Serializing trained weights and preprocessing scales |
-| **Interactive UI** | Python Streamlit | Premium dark-themed business intelligence frontend |
-| **Visualizations** | Plotly Express & Graph Objects | Dynamic Candlesticks, backtesting curves, PCA plots |
-| **Containerization** | Docker, Slim Runtime | Ensuring platform portability and CI/CD pipelines |
+BorsaNeuron platformunda kullanılan makine öğrenmesi modelleri ve teknik analiz algoritmaları, tarihsel fiyat hareketleri ve bunlardan türetilen matematiksel indikatörler ile sınırlıdır. Finansal piyasalar, doğası gereği yarı etkin (semi-strong efficient) piyasa yapısındadır ve fiyatlar yalnızca geçmiş verilerden değil, aynı zamanda dışsal şoklardan da etkilenir.
 
-# REFERENCES
+**Platformun Temel Kısıtları:**
+1.  **Makro Şoklar ve Haber Akışları:** TCMB faiz kararları, enflasyon açıklamaları, küresel jeopolitik gerilimler veya şirketlerin KAP'a (Kamuyu Aydınlatma Platformu) bildirdiği ani maddi durum açıklamaları, teknik indikatörlerin ürettiği sinyalleri geçersiz kılabilmektedir.
+2.  **Sızıntı Riski (Look-Ahead Bias):** Canlı çıkarım esnasında yfinance veri akışındaki anlık gecikmeler veya güncellenmemiş veriler geçici kararsızlıklara yol açabilir.
+
+**Gelecek Çalışmalar ve Hedefler:**
+Yapay zeka çıkarımlarının güvenilirliğini artırmak amacıyla, sisteme bir **Doğal Dil İşleme (NLP)** modülü eklenmesi planlanmaktadır. Bu modül, KAP bildirimlerini ve finansal haber başlıklarını canlı olarak tarayarak duygu analizi (sentiment analysis) skorları üretecektir. Elde edilen bu duygu skorları, BorsaNeuron'un teknik analiz modeline birer ek özellik (feature) olarak beslenecek ve teknik veri ile temel veriyi birleştiren hibrit bir karar destek motoru oluşturulacaktır.
+
+# TEKNOLOJİ YIĞINI
+
+| Katman | Kullanılan Teknolojiler | Kullanım Amacı |
+|---|---|---|
+| **Programlama Dili** | Python v3.9+ | Tüm bilimsel hesaplamalar ve ana kod tabanı |
+| **Veri Mühendisliği** | Pandas, NumPy | Veri önişleme, dizi operasyonları ve indikatör hesaplamaları |
+| **Canlı Veri Akışı** | yFinance API | Günlük mum fiyatlarının anlık olarak indirilmesi |
+| **Veri Madenciliği** | Scikit-learn (K-Means, PCA) | Piyasa segmentasyonu ve boyut azaltma analizi |
+| **Yapay Zeka Modelleri** | MLPClassifier, RandomForest, K-NN | Gelecek fiyat yönünü tahmin eden sınıflandırıcılar |
+| **Model Kaydetme** | Joblib | Eğitilen model ve ölçekleyicilerin diske yazılması/okunması |
+| **Kullanıcı Arayüzü** | Python Streamlit | Koyu temalı, glassmorphic SaaS iş istasyonu arayüzü |
+| **Görselleştirme** | Plotly Express & Graph Objects | Etkileşimli mum grafikleri, getiri eğrileri, PCA dağılımları |
+| **Dağıtım** | Docker, Slim Runtime | Sunucu bağımsız dağıtım ve CI/CD süreçlerinin kolaylaştırılması |
+
+# KAYNAKÇA
 
 *   Adebiyi, A. A., Adewumi, A. O., & Ayo, C. K. (2014). *Comparison of ARIMA and Artificial Neural Networks Models for Stock Price Prediction*. Journal of Applied Mathematics, 2014, 1-10. https://doi.org/10.1155/2014/614342
-*   Atayurt, O. (2021). *Airbnb Demo Project*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Dr. Lecturer Uğur Tevfik Kaplancalı)
+*   Atayurt, O. (2021). *Airbnb Demo Project*. Yeditepe Üniversitesi, Ticari Bilimler Fakültesi, Yönetim Bilişim Sistemleri Bölümü, Lisans Tezi. (Tez Danışmanı: Dr. Öğr. Üyesi Uğur Tevfik Kaplancalı)
 *   Bahar, O., & Bilen, K. (2023). *Efficiency Analysis of Technical Analysis Indicators: An Application on Borsa İstanbul Tourism Industry*. Anatolia: Turizm Araştırmaları Dergisi, 34(2), 83-94. https://doi.org/10.17123/atad.1291666
 *   Ding, X., Zhang, Y., Liu, T., & Duan, J. (2015). *Deep learning for event-driven stock prediction*. In *Proceedings of the 24th International Joint Conference on Artificial Intelligence (IJCAI)* (pp. 2327-2333).
 *   Htun, H. H., Biehl, M., & Petkov, N. (2023). *Survey of feature selection and extraction techniques for stock market prediction*. Financial Innovation, 9(1), 26. https://doi.org/10.1186/s40854-022-00441-7
-*   Kutlu, G. (2022). *Intelligent Agent to Enhance Search Engine*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Assoc. Prof. Dr. Uğur Tevfik Kaplancalı)
+*   Kutlu, G. (2022). *Intelligent Agent to Enhance Search Engine*. Yeditepe Üniversitesi, Ticari Bilimler Fakültesi, Yönetim Bilişim Sistemleri Bölümü, Lisans Tezi. (Tez Danışmanı: Doç. Dr. Uğur Tevfik Kaplancalı)
 *   Li, A. W., & Bastos, G. S. (2020). *Stock Market Forecasting Using Deep Learning and Technical Analysis: A Systematic Review*. IEEE Access, 8, 185107-185117. https://doi.org/10.1109/ACCESS.2020.3030226
 *   Lin, Y., Guo, H., & Hu, J. (2018). *An SVM-based approach for stock market trend prediction*. International Journal of Forecasting, 34(3), 452-465. https://doi.org/10.1016/j.ijforecast.2018.03.001
 *   Nassirtoussi, A. K., Aghabozorgi, S., Wah, T. Y., & Ngo, D. C. L. (2014). *Text mining for market prediction: A systematic review*. Expert Systems with Applications, 41(16), 7653-7670. https://doi.org/10.1016/j.eswa.2014.06.009
 *   Nti, I. K., Adebiyi, M. O., & Adebiyi, A. A. (2020). *A systematic review of fundamental and technical analysis of stock market predictions*. Artificial Intelligence Review, 53(4), 3007-3057. https://doi.org/10.1007/s10462-019-09754-y
-*   Raşo, H., & Demirci, M. (2019). *Predicting the Turkish Stock Market BIST 30 Index using Deep Learning*. International Journal of Engineering Research and Development, 11(1), 253-265. https://doi.org/10.29137/umagd.425560
+*   Raşo, H., & Demirci, M. (2019). *Predicting the Turkish Stock Market BIST 30 Index using Deep Learning*. Uluslararası Mühendislik Araştırma ve Geliştirme Dergisi (UMAGD), 11(1), 253-265. https://doi.org/10.29137/umagd.425560
 *   Sonkavde, G., Dharrao, D. S., Bongale, A. M., Deokate, S. T., Doreswamy, D., & Bhat, S. K. (2023). *Forecasting Stock Market Prices Using Machine Learning and Deep Learning Models: A Systematic Review, Performance Analysis and Discussion of Implications*. International Journal of Financial Studies, 11(3), 94. https://doi.org/10.3390/ijfs11030094
-*   Taşkaya, E. (2021). *The Difference between Amazon and Alibaba's Marketing Strategy*. Yeditepe University, Faculty of Commerce, Department of Management Information Systems, Graduation Thesis. (Supervised by Dr. Lecturer Uğur Tevfik Kaplancalı)
+*   Taşkaya, E. (2021). *The Difference between Amazon and Alibaba's Marketing Strategy*. Yeditepe Üniversitesi, Ticari Bilimler Fakültesi, Yönetim Bilişim Sistemleri Bölümü, Lisans Tezi. (Tez Danışmanı: Dr. Öğr. Üyesi Uğur Tevfik Kaplancalı)
 *   Verma, S., Sahu, S. P., & Sahu, T. P. (2023). *Stock Market Forecasting with Different Input Indicators using Machine Learning and Deep Learning Techniques: A Review*. IAENG International Journal of Computer Science, 50(4), 1-17.

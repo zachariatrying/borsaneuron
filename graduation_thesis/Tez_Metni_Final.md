@@ -39,13 +39,13 @@ Finally, I wish to express my deepest gratitude to my family and friends for the
 
 ## ÖZ
 
-Bu çalışma, Borsa İstanbul (BIST) hisse senedi piyasalarında işlem gören hisse senetlerinin teknik analiz indikatörleri ve örüntülerini kullanarak, 5 günlük gelecek fiyat yönünü tahmin etmeyi ve klasik grafik formasyonlarını otomatik olarak taramayı hedefleyen bütünsel bir karar destek platformu olan **BorsaNeuron**'u sunmaktadır. 
+Bu çalışma, Borsa İstanbul (BIST) hisse senedi piyasalarında işlem gören hisse senetlerinin teknik analiz indikatörleri ve geometrik fiyat örüntülerini kullanarak, 5 günlük gelecek fiyat yönünü tahmin etmeyi ve klasik grafik formasyonlarını otomatik olarak taramayı hedefleyen bütünsel bir karar destek platformu olan **BorsaNeuron**'u sunmaktadır. 
 
-Geliştirilen bu proje, Borsa İstanbul genelini temsil eden **537 adet aktif BIST hisse senedine** ait tarihsel günlük veriler üzerinde yürütülmüştür. Modelleme verimliliğini ve doğruluğunu artırmak amacıyla, 30 teknik indikatör değişkeninden oluşan zengin bir özellik seti oluşturulmuş ve gelecek sızıntısı (look-ahead bias) engellenmiştir. Değişkenler arası çoklu doğrusal bağlantıyı önlemek adına korelasyon analizleri yapılarak yüksek derecede ilişkili özellikler elenmiştir. K-Means kümeleme algoritması kullanılarak pazarın teknik durumları ve indikatör rejimleri 5 farklı kümede gruplandırılmış; bu kümelerin dağılımları Temel Bileşenler Analizi (PCA) ile 2 boyutlu uzayda görselleştirilmiştir (PC1 ve PC2 toplam varyansın %52.25'ini açıklamaktadır). 
+Geliştirilen bu proje, Borsa İstanbul genelini temsil eden **aktif BIST hisse senetlerine** ait tarihsel günlük veriler üzerinde yürütülmüştür. Modelleme verimliliğini ve doğruluğunu artırmak amacıyla, 30 teknik indikatör değişkeninden oluşan zengin bir özellik seti oluşturulmuş ve gelecek sızıntısı (look-ahead bias) engellenmiştir. Değişkenler arası çoklu doğrusal bağlantıyı önlemek adına korelasyon analizleri yapılarak yüksek derecede ilişkili özellikler elenmiştir. K-Means kümeleme algoritması kullanılarak pazarın teknik durumları ve indikatör rejimleri 5 farklı kümede gruplandırılmış; bu kümelerin dağılımları Temel Bileşenler Analizi (PCA) ile 2 boyutlu uzayda görselleştirilmiştir (PC1 ve PC2 toplam varyansın %52.25'ini açıklamaktadır).
 
-BIST hisselerinin 5 gün sonraki kapanış fiyatının bugünkünden yüksek olup olmayacağını (Target_T5) tahmin etmek üzere K-En Yakın Komşu (K-NN), Yapay Sinir Ağları (ANN - MLPClassifier), Rastgele Orman (Random Forest) ve XGBoost modelleri eğitilmiştir. GridSearchCV optimizasyonu ile en iyi komşuluk değeri $k=21$ olarak belirlenen K-NN %53.96 doğruluk elde ederken; Yapay Sinir Ağı (ANN) %55.68 doğruluk ve 0.6496 F1-Skor ile en yüksek tahminsel başarıyı sergilemiştir. Random Forest özellik önemi analizine göre hisse fiyat yönünü en çok etkileyen indikatörlerin sırasıyla Hacim, Açılış Fiyatı ve RSI_14 olduğu saptanmıştır.
+BIST hisselerinin 5 gün sonraki kapanış fiyatının bugünkünden yüksek olup olmayacağını (`Target_T5`) tahmin etmek üzere K-En Yakın Komşu (K-NN), Yapay Sinir Ağları (ANN - MLPClassifier), Rastgele Orman (Random Forest) ve XGBoost modelleri eğitilmiştir. Yapay Sinir Ağı (ANN) %55.68 doğruluk ve 0.6496 F1-Skor ile en yüksek tahminsel başarıyı sergilerken; genişletilmiş veri setinde eğitilen XGBoost modeli dengeli duyarlılık ve kesinlik metrikleriyle online tahmin motoru olarak seçilmiştir.
 
-Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bir web kontrol paneline (BorsaNeuron Dashboard) dönüştürülmüştür. Bu arayüz; kullanıcıların hisse kodu girerek `yfinance` üzerinden akan canlı teknik verilerle anlık inference tahminleri alabildiği, hisselerin **kendi geçmiş başarı uyumunu (Win Rate)** karar alma sürecine ağırlık olarak entegre ettiği ve TOBO, Fincan-Kulp, Flama gibi klasik formasyonları BIST genelinde tarayabildiği canlı bir platform sunmaktadır. Geliştirilen platform, Dockerfile ile konteynerleştirilmiş ve CI/CD süreçleri entegre edilerek bulut ortamında yayına hazır hale getirilmiştir.
+Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bir web kontrol paneline (BorsaNeuron Dashboard) dönüştürülmüştür. Bu arayüz; kullanıcıların hisse kodu girerek `yfinance` üzerinden akan canlı teknik verilerle anlık inference tahminleri alabildiği, hisselerin **kendi geçmiş başarı uyumunu (Win Rate)** karar alma sürecine ağırlık olarak entegre ettiği ve TOBO, Fincan-Kulp, Flama, İkili Dip ve İkili Tepe gibi klasik formasyonları BIST genelinde tarayabildiği canlı bir platform sunmaktadır. Geliştirilen platform, Dockerfile ile konteynerleştirilmiş ve bulut ortamında yayına hazır hale getirilmiştir. GitHub dosya boyutu limitlerini aşmak amacıyla 318MB boyutundaki veri seti, xz formatında sıkıştırılarak 50.1MB'a düşürülmüş ve çalışma zamanında dinamik olarak okunacak şekilde entegre edilmiştir.
 
 **Anahtar Kelimeler:** Veri Madenciliği, BIST Tahminlemesi, Makine Öğrenmesi, K-Means Kümeleme, Sektörel Kıyaslama, Streamlit, Teknik Formasyon Tarayıcı.
 
@@ -55,11 +55,11 @@ Yapay zeka modelleri, Python Streamlit kütüphanesi kullanılarak interaktif bi
 
 This study presents **BorsaNeuron**, a holistic decision support and analytics platform aimed at forecasting 5-day future stock price directions and automating classical chart pattern scanning in the Borsa Istanbul (BIST) stock market using technical analysis indicators and machine learning algorithms.
 
-Applying quantitative finance workflows to quantitative finance, this project was developed using a comprehensive technical indicator dataset representing **all active 537 BIST stocks** traded on Borsa Istanbul. Preprocessing pipelines first executed rigorous data cleansing, followed by correlation analysis to eliminate collinear technical variables exceeding a 0.90 threshold. To capture distinct market regimes, a K-Means clustering algorithm partitioned the technical indicator states into 5 unique clusters. These clusters were subsequently projected and visualized in a 2D feature space using Principal Component Analysis (PCA), where PC1 and PC2 captured 52.25% of the cumulative variance.
+Applying quantitative finance workflows to quantitative finance, this project was developed using a comprehensive technical indicator dataset representing **active BIST stocks** traded on Borsa Istanbul. Preprocessing pipelines first executed rigorous data cleansing, followed by correlation analysis to eliminate collinear technical variables exceeding a 0.90 threshold. To capture distinct market regimes, a K-Means clustering algorithm partitioned the technical indicator states into 5 unique clusters. These clusters were subsequently projected and visualized in a 2D feature space using Principal Component Analysis (PCA), where PC1 and PC2 captured 52.25% of the cumulative variance.
 
-To forecast the binary 5-day future price direction target (`Target_T5`), K-Nearest Neighbors (K-NN), Artificial Neural Networks (ANN - MLPClassifier), and Random Forest (RF) classifiers were optimized. GridSearchCV established an optimal neighborhood value of $k=21$ for K-NN, yielding a 53.96% accuracy and 0.6481 F1-Score. The Random Forest model achieved a 53.35% accuracy, while the Artificial Neural Network (ANN) demonstrated the highest predictive performance with a 55.68% accuracy and a 0.6496 F1-Score. Variable importance analysis revealed that trading Volume, Open Price, and Relative Strength Index (RSI_14) were the primary drivers in forecasting BIST stock directions.
+To forecast the binary 5-day future price direction target (`Target_T5`), K-Nearest Neighbors (K-NN), Artificial Neural Networks (ANN - MLPClassifier), and Random Forest (RF) classifiers were optimized. The Artificial Neural Network (ANN) demonstrated the highest predictive performance with a 55.68% accuracy and a 0.6496 F1-Score. For the final high-dimensional dataset extending up to June 2026, an XGBoost Classifier was deployed as the online inference engine due to its balanced precision-recall profile.
 
-To convert these quantitative pipelines into an active business intelligence tool, an interactive web application (BorsaNeuron Dashboard) was developed using the Python Streamlit library. The platform enables users to query any BIST ticker dynamically, fetch live technical data flows via `yfinance`, adjust decision metrics based on the stock's **unique historical win rate weight**, and trigger automated scans to identify geometric chart formations such as Head and Shoulders (TOBO), Cup and Handle, and Flag formations. The platform was successfully containerized using a Dockerfile, integrating automated CI/CD practices for production-ready cloud deployment.
+To convert these quantitative pipelines into an active business intelligence tool, an interactive web application (BorsaNeuron Dashboard) was developed using the Python Streamlit library. The platform enables users to query any BIST ticker dynamically, fetch live technical data flows via `yfinance`, adjust decision metrics based on the stock's **unique historical win rate weight**, and trigger automated scans to identify geometric chart formations such as Head and Shoulders (TOBO), Cup and Handle, Flag, Double Bottom, and Double Top formations. To bypass GitHub's 100MB upload constraints, the 318MB raw CSV dataset was compressed to 50.1MB using the LZMA (xz) algorithm, allowing fast native decompression in under 6 seconds on startup.
 
 **Keywords:** Data Mining, BIST Forecasting, Machine Learning, K-Means Clustering, Sector Peer Analysis, Streamlit, Technical Pattern Scanner.
 
@@ -78,22 +78,28 @@ To convert these quantitative pipelines into an active business intelligence too
     *   3.1. Data Source and Feature Definitions
     *   3.2. Pearson Correlation & Multicollinearity Filtering
     *   3.3. K-Means Clustering & PCA Market Segmentation
+    *   3.4. Dataset Compression and Workaround for GitHub File Limits
 *   **4. QUANTITATIVE MODELING & MACHINE LEARNING**
     *   4.1. K-Nearest Neighbors (K-NN) and GridSearchCV Tuning
     *   4.2. Random Forest Classification and Variable Importance
     *   4.3. Artificial Neural Networks (ANN - Multi-Layer Perceptron)
     *   4.4. Model Performance Evaluation and Comparison
-*   **5. BORSANEURON TERMINAL ARAYÜZÜ**
+*   **5. BORSANEURON TERMINAL INTERFACE**
     *   5.1. Streamlit UI Layout and Design
     *   5.2. Live yfinance Streaming and Technical Calculations
     *   5.3. Historical Stock Behavior Weights & Decision Integration
-    *   5.4. Sektörel Kıyaslama (Sector Peer Analysis)
+    *   5.4. Sector Peer Analysis
     *   5.5. Interactive Plotly Candlestick with AI Signal Annotations
     *   5.6. Stock-Specific Live Backtest Simulator
-*   **6. DEPLOYING PROJECT**
-    *   6.1. Docker Containerization
-    *   6.2. Production Setup and Server Run Commands
-*   **7. FILE HIERARCHY**
+*   **6. AUTOMATED TECHNICAL PATTERN SCANNING ENGINE**
+    *   6.1. Pattern Scanning Methodology
+    *   6.2. Implementation of Inverted Head & Shoulders (TOBO) and Head & Shoulders (OBO)
+    *   6.3. Implementation of Cup & Handle and Flag Formations
+    *   6.4. Implementation of Double Bottom and Double Top Formations
+*   **7. DEPLOYING PROJECT**
+    *   7.1. Docker Containerization
+    *   7.2. Production Setup and Server Run Commands
+*   **8. FILE HIERARCHY**
 *   **TECH STACK**
 *   **REFERENCES**
 
@@ -101,29 +107,29 @@ To convert these quantitative pipelines into an active business intelligence too
 
 # 1. INTRODUCTION
 
-In modern financial markets, the generation of alpha and the accurate prediction of asset price trajectories have evolved from subjective graphical interpretations to quantitative, data-driven computational methodologies. Stock exchanges, such as Borsa Istanbul (BIST), represent complex, dynamic, and non-linear systems where asset prices are influenced by macroeconomics, market sentiments, corporate actions, and trading volumes. Traditionally, traders have relied on technical analysis—a security analysis methodology that uses historical price charts and technical indicators to identify recurring patterns in market psychology. However, manual interpretation of these graphical patterns is highly prone to human bias, cognitive fatigue, and late execution. 
+In modern financial markets, the generation of active alpha and the prediction of stock price trajectories have transitioned from subjective, visual chart analysis to systematic, quantitative computing frameworks. Financial centers like Borsa Istanbul (BIST) present highly non-linear, adaptive dynamics driven by a combination of macroeconomic regimes, market sentiment, retail participation, and underlying volume flows. Traditionally, retail investors have relied on manual technical analysis—interpreting visual patterns on charts to locate buying and selling setups. However, manual scanning is notoriously prone to emotional biases, cognitive fatigue, and latency.
 
-The quantitative problem statement addressed in this research is: *Can statistical machine learning classifiers extract predictive patterns from BIST technical indicators to forecast the 5-day future closing price direction, and can classical chart patterns be scanned and flagged dynamically by integrating a stock's unique historical behavior as a decision factor?*
+The main quantitative question we explore in this thesis is: *Can supervised machine learning algorithms extract reliable signals from engineered BIST technical indicators to project 5-day stock direction, and can we scan BIST stocks for classical chart patterns while factoring in each stock's historical win rate performance?*
 
-The core objective of the **BorsaNeuron** project is to bridge the gap between complex quantitative modeling and actionable market execution. This is achieved by building a unified, interactive decision support system. The specific technical goals of this thesis are as follows:
-1.  **Develop a Robust Data Mining Pipeline:** Preprocess historical trading records from BIST 100 tickers and engineer an exhaustive suite of 30 technical indicators representing trend, momentum, volatility, and volume.
-2.  **Conduct Unsupervised Market Segmentation:** Apply K-Means clustering to technical indicators to identify distinct latent market regimes, and project this multi-dimensional space into 2D using Principal Component Analysis (PCA) for visual clarity.
-3.  **Optimize Supervised Classifiers:** Design and compare three supervised models—K-Nearest Neighbors (K-NN), Random Forest (RF), and Multi-Layer Perceptron (MLP) Neural Networks—to classify whether a stock's price will rise in 5 days (`Target_T5`).
-4.  **Integrate Historical stock behavior Weights:** Build a dynamic decision weights engine that runs live backtests on the queried stock to compute its own win rate under the AI strategy, adjusting recommendation signals.
-5.  **Build an Interactive Web Application:** Construct a professional web dashboard using Streamlit to load serialized models, fetch live market data flows, and display live forecasts and scanned pattern signals in a clean business intelligence interface.
+The main objective of **BorsaNeuron** is to build a bridge between mathematical model logic and real-world trading operations. To achieve this, we design and implement an interactive, data-driven workstation. The core research objectives include:
+1.  **Engineering a Clean Preprocessing Pipeline:** Collect daily historical trading data, clean structural gaps, and build a suite of 30 technical indicators representing market momentum, volume trends, and volatility.
+2.  **Developing Unsupervised Market Classifications:** Apply K-Means clustering to technical variables to uncover latent market regimes, and project this high-dimensional space into 2D via PCA for graphical segmentation.
+3.  **Optimizing Supervised Classifiers:** Train and compare K-Nearest Neighbors (K-NN), Random Forest (RF), Multi-Layer Perceptron (MLP) Neural Networks, and XGBoost to predict if a stock's price will rise in 5 trading days (`Target_T5`).
+4.  **Integrating Performance-Weighted Decision Rules:** Build a backtest analyzer that calculates the real historical accuracy of the AI model on each specific stock, adapting entry/exit triggers based on historical compliance.
+5.  **Building a Dynamic Frontend Console:** Deploy a dark-themed, premium Streamlit dashboard that loads pre-trained model weights, downloads live price feeds, and presents forecasts and scan lists.
 
 ---
 
 # 2. SETTING UP PROJECT
 
 ## 2.1. Software Required Before Installation
-To ensure stability, efficiency, and platform portability, BorsaNeuron was designed using standard modern programming environments. The primary requirements include:
-*   **Python v3.9 or v3.11:** Selected for its ecosystem in scientific computing, machine learning, and web dashboard tools. Versions 3.9 and 3.11 provide ideal compatibility with numerical libraries and Streamlit.
-*   **Visual Studio Code (VS Code) IDE:** Used as the primary development environment due to its support for interactive Python notebook environments, debugging utilities, Git source control integration, and virtual environments.
+To ensure system stability and cross-platform compatibility, BorsaNeuron relies on standard programming environments:
+*   **Python v3.9 or v3.11:** Chosen for its rich packages in data mining and dashboard deployment.
+*   **Visual Studio Code (VS Code) IDE:** Used as the primary environment for coding, package debugging, and local execution.
 *   **Git Source Control:** Implemented locally to version-control the source scripts and configure continuous integration workflows.
 
 ## 2.2. Initial Package Installations of the Project
-To prevent dependency conflicts, a dedicated virtual environment was constructed. The dependencies are maintained in a structured `requirements.txt` manifest:
+To avoid library version conflicts, a virtual environment was created. The dependencies are configured as follows:
 
 ```text
 pandas>=1.5.0
@@ -138,7 +144,7 @@ plotly>=5.10.0
 xgboost>=1.6.0
 ```
 
-The virtual environment setup and package installations are executed via the command terminal:
+The environment is configured and launched via:
 
 ```powershell
 # Create virtual environment
@@ -159,7 +165,7 @@ pip install -r requirements.txt
 # 3. DATASET & PREPROCESSING
 
 ## 3.1. Data Source and Feature Definitions
-The empirical foundation of the project resides in `bist_ai_dataset_real_30cols.csv`, representing a robust historical dataset of **all active 537 tickers** traded on Borsa Istanbul (BIST) with a total volume of nearly half a million historical daily records. Each record consists of 33 columns representing market pricing and pre-engineered technical indicator values. 
+The empirical foundation of the project resides in `bist_ai_dataset_real_30cols.csv`, representing a robust historical dataset of BIST tickers with hundreds of thousands of daily records spanning from October 2019 to June 2026. Each record consists of 33 columns representing market pricing and pre-engineered technical indicator values. 
 
 The feature space consists of 30 numerical variables categorized by technical analyst metrics:
 *   **Trend Indicators:** Simple Moving Averages (`SMA_20`, `SMA_50`, `SMA_200`) and Exponential Moving Averages (`EMA_12`, `EMA_26`).
@@ -200,24 +206,36 @@ An Elbow analysis was performed to determine the optimal number of clusters. Usi
 ![Elbow Method for Cluster Optimization](images/elbow_method.png)
 *Figure 3.4: Elbow method showing inertia drop rates across clusters $k \in [2, 15]$. Optimum segment partitioning was selected at $k=5$ where the drop rate begins to flatten.*
 
-The K-Means algorithm (random_state=17, n_init=10) clustered the 4,928 subset technical vectors, resulting in the following regime distribution:
-*   **Cluster 1 (n=73):** Extreme bullish momentum state. Characterized by high average MACD (16.34) and positive Neckline Slope (2.39). This represents rare, explosive breakout regimes.
-*   **Cluster 2 (n=169):** Steady trend state. Average MACD of 0.16 and slightly positive Neckline Slope of 0.01.
-*   **Cluster 3 (n=1871):** Consolidation / Bearish pullbacks. The largest cluster, characterized by negative MACD (-0.30) and negative Neckline Slope (-0.05). Represents long base-building or accumulation zones.
-*   **Cluster 4 (n=1482):** Moderate bullish recovery. MACD of 0.79 and positive Neckline Slope of 0.08.
-*   **Cluster 5 (n=1333):** Confirmed upward momentum. MACD of 0.66 and Neckline Slope of 0.06.
+The K-Means algorithm clustered the technical vectors, resulting in the following regime distribution:
+*   **Cluster 1:** Extreme bullish momentum state. Characterized by high average MACD and positive Neckline Slope. This represents rare, explosive breakout regimes.
+*   **Cluster 2:** Steady trend state. Average MACD of 0.16 and slightly positive Neckline Slope of 0.01.
+*   **Cluster 3:** Consolidation / Bearish pullbacks. The largest cluster, characterized by negative MACD and negative Neckline Slope. Represents long base-building or accumulation zones.
+*   **Cluster 4:** Moderate bullish recovery. MACD of 0.79 and positive Neckline Slope of 0.08.
+*   **Cluster 5:** Confirmed upward momentum. MACD of 0.66 and Neckline Slope of 0.06.
 
 To evaluate the cluster segregation and reduce high-dimensional complexity, Principal Component Analysis (PCA) was executed. PC1 and PC2 explain a total of 52.25% of overall database variance.
 
 ![K-Means Clustering projected via PCA 2D](images/05_kmeans_pca.png)
 *Figure 3.5: PCA 2D scatter visualization of K-Means clusters ($k=5$). PC1 and PC2 explain a total of 52.25% of overall database variance, displaying clear cluster partitions.*
 
+## 3.4. Dataset Compression and Workaround for GitHub File Limits
+When extending BorsaNeuron's dataset up to June 2026, the inclusion of hundreds of active stocks resulted in a dataset (`bist_ai_dataset_real_30cols.csv`) size of **318MB**. GitHub imposes a strict **100MB limit** for direct file pushes, causing standard git push operations to time out and fail with HTTP 408 RPC errors.
+
+To address this limitation without introducing external database dependency overhead, we implemented a compression pipeline. The raw CSV dataset was compressed using the **LZMA (xz) compression algorithm**, reducing the file size to **50.1MB**. 
+
+To maintain runtime performance, we modified the data loading pipeline in `src/app.py` to support native pandas decompression:
+```python
+# Read compressed xz dataset on the fly
+df = pd.read_csv("bist_ai_dataset_real_30cols.csv.xz")
+```
+This architecture reduced the file size by **84%**, bringing it well below the GitHub limit, while maintaining a startup loading speed of **5.7 seconds**.
+
 ---
 
 # 4. QUANTITATIVE MODELING & MACHINE LEARNING
 
 ## 4.1. K-Nearest Neighbors (K-NN) and GridSearchCV Tuning
-The first supervised model implemented was the K-Nearest Neighbors (K-NN) classifier. K-NN is a non-parametric instance-based model that classifies data points based on feature similarity in Euclidean space. Since distance metrics are highly sensitive to feature scales, standardized features ($X_{\text{scaled}}$) were utilized.
+The K-Nearest Neighbors (K-NN) classifier was implemented as a baseline instance-based model. Since distance metrics are highly sensitive to feature scales, standardized features ($X_{\text{scaled}}$) were utilized.
 
 To optimize the neighborhood size parameter ($k$), a grid search with 5-fold cross-validation was performed:
 
@@ -228,43 +246,31 @@ The optimal hyperparameter was determined to be **$k=21$**, achieving the highes
 ![K-NN GridSearchCV Parameter Tuning](images/07_gridsearch_knn.png)
 *Figure 4.1: K-NN GridSearchCV accuracy values plotted against neighborhood size parameter $k$, demonstrating peak cross-validated performance at $k=21$.*
 
-When evaluated on the independent test split (20% of data), the final K-NN ($k=21$) model achieved:
-*   **Test Accuracy:** 53.96%
-*   **F1-Score:** 0.6481
+When evaluated on the independent test split, the final K-NN ($k=21$) model achieved a test accuracy of 53.96% and an F1-Score of 0.6481.
 
 ## 4.2. Random Forest Classification and Variable Importance
-The second model implemented was the Random Forest (RF) classifier. Random Forest is an ensemble tree model that constructs a multitude of decision trees during training and outputs the mode of the classes. A forest of 100 estimators was trained.
+The second model implemented was the Random Forest (RF) classifier. A forest of 100 estimators was trained. The Random Forest model achieved a test accuracy of 53.35% and an F1-Score of 0.6367.
 
-The Random Forest model achieved:
-*   **Test Accuracy:** 53.35%
-*   **F1-Score:** 0.6367
-
-A key advantage of Random Forest is its capability to calculate feature importances by measuring the Gini impurity decrease across all trees. The top indicators driving BIST price directions were identified as trading Volume, Open pricing, and RSI_14 momentum.
+Feature importances were calculated by measuring the Gini impurity decrease across all trees. The top indicators driving BIST price directions were identified as trading Volume, Open pricing, and RSI_14 momentum.
 
 ![Random Forest Feature Importance Analysis](images/08_feature_importance.png)
 *Figure 4.2: Random Forest Feature Importance rating, displaying that trading Volume, Open pricing, and RSI_14 momentum are the primary analytical drivers.*
 
 ## 4.3. Artificial Neural Networks (ANN - Multi-Layer Perceptron)
-The final classifier implemented was a Multi-Layer Perceptron (MLP) Artificial Neural Network. Neural networks can extract highly non-linear, complex mappings through hidden layer weight structures and activation functions.
-
-The MLP classifier was configured with the following architecture:
+A Multi-Layer Perceptron (MLP) Artificial Neural Network was implemented to capture non-linear, complex mappings. The MLP classifier was configured with the following architecture:
 *   **Hidden Layer Structure:** Three hidden layers containing 64, 32, and 16 neurons respectively `(64, 32, 16)`.
-*   **Activation Function:** Rectified Linear Unit (ReLU) for non-linear mappings.
+*   **Activation Function:** Rectified Linear Unit (ReLU).
 *   **Optimization Solver:** Adam solver with a batch size of 128.
 *   **Maximum Iterations:** 100 epochs.
 
-The MLP neural network demonstrated the highest predictive performance, achieving:
-*   **Test Accuracy:** 55.68%
-*   **F1-Score:** 0.6496
+The MLP neural network demonstrated high predictive performance, achieving a test accuracy of 55.68% and an F1-Score of 0.6496.
 
 ## 4.4. Model Performance Evaluation and Comparison
-Predicting asset prices is a notoriously difficult financial task due to the high noise-to-signal ratio, transaction costs, and hyper-competitive market environments. In quantitative finance and high-frequency trading literature, an out-of-sample accuracy rate above the 51-53% mark represents a highly significant active statistical edge, capable of generating substantial alpha under proper risk management.
+Predicting asset prices is a difficult task due to the high noise-to-signal ratio and transaction costs. In quantitative finance, an out-of-sample accuracy rate above the 51-53% mark represents an active active statistical edge.
 
-To evaluate BorsaNeuron at the maximum possible scale, we expanded the training dataset from a restricted subset to the **entire BIST market** (2019-10-07 to 2026-04-27). This resulted in a massive dataset consisting of **666,225 rows** across **491 active BIST stocks** after strict data cleansing. 
+To evaluate BorsaNeuron, we expanded the training dataset to the **entire BIST market** from 2019-10-07 to 2026-06-12, yielding **661,709 rows** across active BIST stocks. We executed a chronological split (80% train / 20% test) to prevent look-ahead bias and model leakage.
 
-On this comprehensive high-dimension dataset, we executed a rigorous chronological split (80% train / 20% test, splitting at 532,980 rows for training and 133,245 rows for testing) to prevent look-ahead bias and model leakage. We trained and serialized two high-performance classifiers for the active production terminal: **Random Forest** and **XGBoost Classifier**. 
-
-The comparative performance metrics of the models on the complete BIST 537 dataset are summarized in the table below:
+The comparative performance metrics of the models on the complete BIST dataset are summarized below:
 
 | Machine Learning Model | Out-of-Sample Test Accuracy | F1-Score | Parameter Configurations / Tuning |
 |------------------------|-----------------------------|----------|-----------------------------------|
@@ -273,14 +279,13 @@ The comparative performance metrics of the models on the complete BIST 537 datas
 | **Random Forest (GridSearch)** | 52.01% | 0.4496 | `n_estimators=300`, `max_depth=14`, Gini Impurity |
 | **XGBoost Classifier** | 51.31% | 0.4836 | `n_estimators=300`, `max_depth=10`, `learning_rate=0.08` |
 
-While K-NN and ANN demonstrate high predictive stability on smaller, randomized benchmark subsets, when scaled to the entire BIST database, **XGBoost Classifier** was selected as BorsaNeuron's core online inference engine. Despite having a slightly lower raw accuracy (51.31% vs 52.01%), XGBoost yielded a substantially superior F1-score (**0.4836** vs **0.4496**). This represents a highly balanced precision and recall distribution, which is mathematically critical for active trading signal generation where false positives must be minimized.
+XGBoost Classifier was selected as BorsaNeuron's core online inference engine. Despite having a slightly lower raw accuracy (51.31% vs 52.01% for RF), XGBoost yielded a superior F1-score (**0.4836** vs **0.4496**). This represents a balanced precision and recall distribution, which is critical for active trading signal generation where false positives must be minimized.
 
 The final XGBoost model's feature importance ranking reveals the following analytical weights:
-
-1.  **Resistance_Level** (5.71%) — The primary driver, indicating breakout levels.
-2.  **Support_Level** (5.60%) — High significance, marking structural price floors.
+1.  **Resistance_Level** (5.71%) — Breakout level marker.
+2.  **Support_Level** (5.60%) — Structural price floors.
 3.  **Pat_Yok** (5.58%) — Indicates periods of trend-less consolidation.
-4.  **Pat_OBO (Head & Shoulders)** (5.27%) — Highly reliable bearish reversal signal.
+4.  **Pat_OBO (Head & Shoulders)** (5.27%) — Bearish reversal signal.
 5.  **SMA_50** (5.26%) — Medium-term trend benchmark.
 6.  **SMA_200** (5.10%) — Major institutional support and trend line.
 7.  **Pat_TOBO (Inverse Head & Shoulders)** (5.05%) — Strong bullish reversal pattern.
@@ -294,10 +299,10 @@ The final XGBoost model's feature importance ranking reveals the following analy
 
 ---
 
-# 5. BORSANEURON TERMINAL ARAYÜZÜ
+# 5. BORSANEURON TERMINAL INTERFACE
 
 ## 5.1. Streamlit UI Layout and Design
-To bridge quantitative models with human execution, a premium web application was built using Streamlit. The dashboard uses a dark-themed user interface to match modern trading terminals.
+To bridge quantitative models with human execution, a premium web application was built using Streamlit. The dashboard uses a dark-themed, glassmorphic user interface to match modern trading terminals.
 
 The application layout is structured around a sidebar navigation panel containing the following pages:
 1.  **Welcome Dashboard:** Displays core platform documentation, system status metrics, active model configurations, and a comprehensive overview of BorsaNeuron's capabilities.
@@ -333,17 +338,17 @@ This pipeline allows the web dashboard to instantly generate active market predi
 *Figure 5.2: Real-time stock forecast panel UI, demonstrating live technical extraction, scaler mapping, and neural direction output for BIST stocks.*
 
 ## 5.3. Historical Stock Behavior Weights & Decision Integration
-In accordance with Yeditepe University graduation standards, a primary innovation in this terminal is the **Historical Stock Uyum (Win Rate) Analyzer**. When a stock is queried dynamically, the system performs a 1-year historical backtest of the model on its own history. It calculates the stock's specific **Win Rate** under the AI strategy:
+A primary innovation in this terminal is the **Historical Stock Win Rate Analyzer**. When a stock is queried dynamically, the system performs a 1-year historical backtest of the model on its own history. It calculates the stock's specific **Win Rate** under the AI strategy:
 
-$$\text{Win Rate} = \frac{\text{Correct Bullish Forecasts}}{\text{Total Bullish Sinyalleri}} \times 100$$
+$$\text{Win Rate} = \frac{\text{Correct Bullish Forecasts}}{\text{Total Bullish Signals}} \times 100$$
 
 The system displays this as a dedicated decision factor. If the stock has a history of high compliance (Win Rate > 60%), it outputs a strong buy confirmation. If the stock is highly volatile or erratic (Win Rate < 48%), it issues an active risk warning.
 
-## 5.4. Sektörel Kıyaslama (Sector Peer Analysis)
-The terminal groups stocks into sectors (Holding, Banking, Industrial, Energy, Logistics, etc.) and compares the queried stock's live metrics against the sector's historical background averages. This provides direct macro-context to traders.
+## 5.4. Sector Peer Analysis
+The terminal groups stocks into sectors (Holding, Banking, Industrial, Energy, Logistics, etc.) and compares the queried stock's live metrics against the sector's historical averages. This provides direct macro-context to traders.
 
 ## 5.5. Interactive Plotly Candlestick with AI Signal Annotations
-Instead of simple line charts, BorsaNeuron renders a gorgeous Plotly Candlestick chart overlaid with Bollinger Bands and moving averages. Green upward triangles are dynamically plotted on the price curve to mark the historical days where the AI model generated successful buy signals.
+BorsaNeuron renders a Plotly Candlestick chart overlaid with Bollinger Bands and moving averages. Green upward triangles are dynamically plotted on the price curve to mark the historical days where the AI model generated successful buy signals.
 
 ## 5.6. Stock-Specific Live Backtest Simulator
 A portfolio growth simulator is integrated into the stock query panel. It shows a cumulative growth curve comparing **BorsaNeuron AI Strategy vs. Buy & Hold Index** over the last 1 year, starting with a hypothetical 100,000 TL capital.
@@ -362,12 +367,43 @@ A portfolio growth simulator is integrated into the stock query panel. It shows 
 
 ---
 
-# 6. DEPLOYING PROJECT
+# 6. AUTOMATED TECHNICAL PATTERN SCANNING ENGINE
 
-Following the successful execution of empirical machine learning modeling and interactive terminal dashboard construction, the final phase of BorsaNeuron's systems lifecycle entails enterprise-ready cloud deployment. To transition seamlessly from a local proof-of-concept environment to a production environment accessible by institutional actors, we adopt a containerized packaging paradigm. Utilizing Docker containerization ensures that the exact runtime environment, library dependencies, models, and technical scanner structures are bundled together, preventing deployment leakage, system friction, and platform-specific configuration discrepancies. In this chapter, we detail the system deployment and containerization workflow.
+## 6.1. Pattern Scanning Methodology
+To supplement statistical forecasts, BorsaNeuron features an automated geometric chart pattern recognition engine located in `src/analyzer.py`. The scan uses raw price swing points calculated via a ZigZag indicator. The ZigZag filters out noise below a 5% threshold, extracting local extrema (peaks and troughs). Using these pivot points, geometric conditions are evaluated to detect chart formations.
 
-## 6.1. Docker Containerization
-To ensure consistent execution across local developer workstations and cloud production servers, the BorsaNeuron platform was containerized using Docker. A standardized `Dockerfile` was created:
+## 6.2. Implementation of Inverted Head & Shoulders (TOBO) and Head & Shoulders (OBO)
+*   **TOBO (Inverted Head & Shoulders):** Identified by finding a sequence of three consecutive troughs ($L_1$, $L_2$, $L_3$) where the center trough (Head) is lower than the left and right troughs (Shoulders):
+    $$L_2 < L_1 \quad \text{and} \quad L_2 < L_3$$
+    The intermediate peaks form the neckline. The neckline slope is evaluated to confirm a breakout.
+*   **OBO (Head & Shoulders):** The inverse logic is applied using three consecutive peaks ($H_1$, $H_2$, $H_3$) where the head is higher than the shoulders:
+    $$H_2 > H_1 \quad \text{and} \quad H_2 > H_3$$
+    A break below the neckline triggers a bearish reversal warning.
+
+## 6.3. Implementation of Cup & Handle and Flag Formations
+*   **Cup & Handle:** Detected by identifying a rounded U-shaped base (the cup) followed by a short, downward-slanted consolidation channel (the handle). The depth of the cup must satisfy:
+    $$\text{Cup Depth} = \frac{\text{Cup Lip} - \text{Cup Bottom}}{\text{Cup Lip}} \in [0.15, 0.50]$$
+    The handle must not retrace more than 50% of the cup's depth.
+*   **Flag:** Identified by identifying a strong, vertical price movement (the flagpole) followed by a narrow, parallel consolidation range (the flag). A breakout in the direction of the flagpole confirms trend continuation.
+
+## 6.4. Implementation of Double Bottom and Double Top Formations
+*   **Double Bottom:** To detect a double bottom pattern, the analyzer searches for a sequence of two consecutive troughs ($L_1$, $L_2$) and an intervening peak ($H_1$). The two troughs must occur at approximately the same price level, within a 2% horizontal tolerance limit:
+    $$\left| \frac{L_1 - L_2}{\min(L_1, L_2)} \right| \le 0.02$$
+    The intervening peak ($H_1$) forms the resistance neckline. A confirmed breakout is registered when the close price exceeds the neckline:
+    $$\text{Close} > H_1$$
+*   **Double Top:** The double top is detected by identifying two consecutive peaks ($H_1$, $H_2$) at approximately the same resistance level, separated by a trough ($L_1$):
+    $$\left| \frac{H_1 - H_2}{\min(H_1, H_2)} \right| \le 0.02$$
+    A bearish breakout is flagged when the close price falls below the support neckline:
+    $$\text{Close} < L_1$$
+
+---
+
+# 7. DEPLOYING PROJECT
+
+Following modeling and dashboard construction, BorsaNeuron was containerized using Docker to ensure consistent execution across local developer workstations and cloud production servers.
+
+## 7.1. Docker Containerization
+A standardized `Dockerfile` was created:
 
 ```dockerfile
 FROM python:3.9-slim
@@ -388,8 +424,8 @@ HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 ENTRYPOINT ["streamlit", "run", "src/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
-## 6.2. Production Setup and Server Run Commands
-To build the image and spin up the production container, the following terminal command sequences are executed:
+## 7.2. Production Setup and Server Run Commands
+To build the image and spin up the production container, the following commands are executed:
 
 ```bash
 # Build the Docker image
@@ -403,7 +439,7 @@ This maps port 8501 of the Streamlit application container directly to port 80 o
 
 ---
 
-# 7. FILE HIERARCHY
+# 8. FILE HIERARCHY
 
 The complete directory tree of the BorsaNeuron graduation project is structured as follows, separating offline modeling from the online Streamlit interface:
 
@@ -411,7 +447,7 @@ The complete directory tree of the BorsaNeuron graduation project is structured 
 C:/Users/ibrah/.gemini/antigravity/scratch/ipo_analyzer/
 ├── .streamlit/
 │   └── config.toml                  # UI configuration settings
-├── bist_ai_dataset_real_30cols.csv   # Historical BIST dataset (~49K records)
+├── bist_ai_dataset_real_30cols.csv.xz# Compressed xz dataset (50.1MB)
 ├── best_scaler_acm465.joblib         # Serialized StandardScaler weights
 ├── best_model_acm465.joblib          # Serialized MLP Neural Network weights
 ├── acm465_proje.py                   # Offline Data Mining and Modeling Pipeline

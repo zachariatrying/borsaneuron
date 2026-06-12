@@ -38,44 +38,42 @@ def main():
             print("App loaded successfully!")
             time.sleep(3)
             
-            # --- PAGE 1: Sistem Tanıtımı ---
+            # --- PAGE 1: Welcome page (System Overview & Documentation) ---
             print("Capturing Welcome page...")
-            path_welcome = os.path.join(out_dir, "03_veri_kesfi.png") # Override descriptive welcome visual
+            path_welcome = os.path.join(out_dir, "03_veri_kesfi.png")
             page.screenshot(path=path_welcome)
             print(f"Saved Welcome screenshot to: {path_welcome}")
             
             # Helper selector to click sidebar radio options robustly
             def navigate_to(page_text):
                 print(f"Navigating to sidebar page: {page_text}...")
-                # Streamlit radio buttons can be found by text
                 selector = f"text={page_text}"
                 page.click(selector)
                 time.sleep(3) # Wait for page state to change and render
             
-            # --- PAGE 2: Açıklayıcı Veri Analizi (EDA) ---
-            navigate_to("Açıklayıcı Veri Analizi (EDA)")
+            # --- PAGE 2: Exploratory Data Analysis (EDA) ---
+            navigate_to("Exploratory Data Analysis (EDA)")
             path1 = os.path.join(out_dir, "borsaneuron_ui_dashboard.png")
             page.screenshot(path=path1)
             print(f"Saved EDA page screenshot to: {path1}")
             
-            # --- PAGE 3: Korelasyon ve Boyut Eleme ---
-            navigate_to("Korelasyon ve Boyut Eleme")
+            # --- PAGE 3: Feature Correlation & Selection ---
+            navigate_to("Feature Correlation & Selection")
             path2 = os.path.join(out_dir, "04_korelasyon_heatmap.png")
             page.screenshot(path=path2)
             print(f"Saved Correlation page screenshot to: {path2}")
             
-            # --- PAGE 4: Piyasa Rejim Sınıflandırması ---
-            navigate_to("Piyasa Rejim Sınıflandırması")
+            # --- PAGE 4: Market Regime Clustering ---
+            navigate_to("Market Regime Clustering")
             path3 = os.path.join(out_dir, "05_kmeans_pca.png")
             page.screenshot(path=path3)
             print(f"Saved Market Regimes page screenshot to: {path3}")
             
-            # --- PAGE 5: Makine Öğrenmesi Model Analizleri ---
-            navigate_to("Makine Öğrenmesi Model Analizleri")
-            # Click train button
-            train_btn = page.locator("button:has-text('Model Eğitim Süreçlerini Başlat')")
+            # --- PAGE 5: Machine Learning Model Analysis ---
+            navigate_to("Machine Learning Model Analysis")
+            train_btn = page.locator("button:has-text('Start Model Training Matrix')")
             if train_btn.count() > 0:
-                print("Clicking 'Model Eğitim Süreçlerini Başlat' button...")
+                print("Clicking 'Start Model Training Matrix' button...")
                 train_btn.click()
                 print("Waiting for model training to complete (15s)...")
                 time.sleep(15)
@@ -83,12 +81,11 @@ def main():
             page.screenshot(path=path4)
             print(f"Saved Model Comparison page screenshot to: {path4}")
             
-            # --- PAGE 6: Zaman Serisi Trend Tahmini ---
-            navigate_to("Zaman Serisi Trend Tahmini")
-            # Click tahmini başlat
-            tahmin_btn = page.locator("button:has-text('Tahmin Matrisini Çalıştır')")
+            # --- PAGE 6: Time-Series Trend Forecasting ---
+            navigate_to("Time-Series Trend Forecasting")
+            tahmin_btn = page.locator("button:has-text('Run Forecast Matrix')")
             if tahmin_btn.count() > 0:
-                print("Clicking 'Tahmin Matrisini Çalıştır' button...")
+                print("Clicking 'Run Forecast Matrix' button...")
                 tahmin_btn.click()
                 print("Waiting for Prophet modeling (10s)...")
                 time.sleep(10)
@@ -96,11 +93,11 @@ def main():
             page.screenshot(path=path5)
             print(f"Saved Prophet page screenshot to: {path5}")
             
-            # --- PAGE 7: Canlı Hisse Sorgulama & Çıkarım ---
-            navigate_to("Canlı Hisse Sorgulama & Çıkarım")
-            analiz_btn = page.locator("button:has-text('Hisseyi Analiz Et')")
+            # --- PAGE 7: Live Stock Query & Inference ---
+            navigate_to("Live Stock Query & Inference")
+            analiz_btn = page.locator("button:has-text('Analyze Stock')")
             if analiz_btn.count() > 0:
-                print("Clicking 'Hisseyi Analiz Et' button...")
+                print("Clicking 'Analyze Stock' button...")
                 analiz_btn.click()
                 print("Waiting for live data fetch & inference (6s)...")
                 time.sleep(6)
@@ -108,17 +105,29 @@ def main():
             page.screenshot(path=path7)
             print(f"Saved Live Stock Query page screenshot to: {path7}")
             
-            # --- PAGE 8: Portföy Simülasyonu ve Backtest ---
-            navigate_to("Portföy Simülasyonu ve Backtest")
-            backtest_btn = page.locator("button:has-text('Out-of-Sample Backtest Simülasyonunu Çalıştır')")
+            # --- PAGE 8: Portfolio Backtesting & Simulation ---
+            navigate_to("Portfolio Backtesting & Simulation")
+            backtest_btn = page.locator("button:has-text('Run Out-of-Sample Backtest')")
             if backtest_btn.count() > 0:
-                print("Clicking 'Out-of-Sample Backtest Simülasyonunu Çalıştır' button...")
+                print("Clicking 'Run Out-of-Sample Backtest' button...")
                 backtest_btn.click()
                 print("Waiting for Backtest run (10s)...")
                 time.sleep(10)
             path6 = os.path.join(out_dir, "borsaneuron_scenario_ui.png")
             page.screenshot(path=path6)
             print(f"Saved Backtest page screenshot to: {path6}")
+            
+            # --- PAGE 9: Automated Pattern Scanner ---
+            navigate_to("Automated Pattern Scanner")
+            scan_btn = page.locator("button:has-text('Start Live Scan')")
+            if scan_btn.count() > 0:
+                print("Clicking 'Start Live Scan' button...")
+                scan_btn.click()
+                print("Waiting for Live Scan (10s)...")
+                time.sleep(10)
+            path8 = os.path.join(out_dir, "senaryo_kume_profil.png") # Override target placeholder or new one
+            page.screenshot(path=path8)
+            print(f"Saved Pattern Scanner page screenshot to: {path8}")
             
             browser.close()
             print("[SUCCESS] All corporate layout screenshots taken successfully!")
@@ -134,6 +143,7 @@ def main():
             print("Streamlit process terminated.")
         except subprocess.TimeoutExpired:
             process.kill()
+            process.wait()
             print("Streamlit process killed.")
 
 if __name__ == "__main__":

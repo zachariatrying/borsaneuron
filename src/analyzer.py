@@ -32,11 +32,17 @@ class Analyzer:
             # TOGGLES (Varsayilan Hepsi Acik)
             'enabled_patterns': {
                 'tobo': True,
+                'obo': True,
                 'flag': True,
+                'flama': True,
                 'cup': True,
                 'breakout': True,
                 'double_bottom': True,
-                'double_top': True
+                'double_top': True,
+                'rocket': True,
+                'rsi_div': True,
+                'triple_bottom_top': True,
+                'triangle_wedge': True
             }
         }
 
@@ -389,34 +395,6 @@ class Analyzer:
             })
             
         return patterns
-
-    def detect_classic_patterns(self, df, timeframe="Günlük"):
-        """Wrapper to detect all classic patterns with config."""
-        # Clean Wrapper
-        if df is None or df.empty: return []
-        
-        zz_points = self.calculate_zigzag(df, deviation=self.config.get('zigzag_deviation', 0.04))
-        
-        all_patterns = []
-        
-        # Checks
-        if self.config['enabled_patterns']['tobo']:
-            all_patterns.extend(self.detect_tobo_zigzag(df, zz_points, timeframe))
-            all_patterns.extend(self.detect_obo_pattern(df, timeframe))
-            
-        if self.config['enabled_patterns']['cup']:
-             all_patterns.extend(self.detect_cup_zigzag(df, zz_points, timeframe))
-             
-        if self.config['enabled_patterns'].get('double_bottom', True):
-             all_patterns.extend(self.detect_double_bottom_pattern(df, zz_points, timeframe))
-             
-        if self.config['enabled_patterns'].get('double_top', True):
-             all_patterns.extend(self.detect_double_top_pattern(df, zz_points, timeframe))
-             
-        # Add Rocket
-        all_patterns.extend(self.detect_high_tight_flag(df))
-             
-        return all_patterns
 
     def validate_volume_profile(self, df, p1_idx, p3_idx, p5_idx):
         """
@@ -1016,6 +994,134 @@ class Analyzer:
             
         return patterns
 
+    def detect_triple_bottom_top(self, df, zz_points, timeframe="Günlük"):
+        """Detects Triple Bottom and Triple Top patterns using ZigZag points."""
+        patterns = []
+        if len(zz_points) < 5: return patterns
+        close = df['Close'].values
+        dates = df['Date'].values
+        curr_idx = len(close) - 1
+        curr_price = close[-1]
+        
+        # We look for: p5(recent) -> p4 -> p3 -> p2 -> p1(oldest)
+        for i in range(len(zz_points)-1, 3, -1):
+            p5, p4, p3, p2, p1 = zz_points[i], zz_points[i-1], zz_points[i-2], zz_points[i-3], zz_points[i-4]
+            
+            # Recency check
+            if curr_idx - p5['idx'] > 15: continue
+            
+            # --- TRIPLE BOTTOM ---
+            if p5['type'] == 'low' and p4['type'] == 'high' and p3['type'] == 'low' and p2['type'] == 'high' and p1['type'] == 'low':
+                # Check that three lows are roughly equal (within 3% tolerance)
+                max_low = max(p1['price'], p3['price'], p5['price'])
+                min_low = min(p1['price'], p3['price'], p5['price'])
+                low_diff = (max_low - min_low) / max_low
+                if low_diff > 0.03: continue
+                
+                # Check that the two peaks (resistance) are higher than lows
+                if p2['price'] < max_low * 1.02 or p4['price'] < max_low * 1.02: continue
+                
+                # Resistance Level is the average of the two peaks
+                res_level = (p2['price'] + p4['price']) / 2.0
+                depth = res_level - min_low
+                
+                status = "unconfirmed"
+                if curr_price > res_level: status = "confirmed"
+                
+                entry = res_level
+                target = res_level + depth
+                stop = min_low
+                
+                vade = self.calculate_smart_vade(p5['idx'] - p1['idx'], 60, timeframe)
+                strategy = self.get_strategy_text(status, curr_price, entry, target, stop, "Triple Bottom")
+                
+                patterns.append({
+                    'name': 'Triple Bottom',
+                    'price': float(curr_price),
+                    'entry': float(entry),
+                    'target': float(target),
+                    'stop': float(stop),
+                    'status': status,
+                    'quality': 'Strong',
+                    'strategy': strategy,
+                    'type': 'triple_bottom',
+                    'score': 85,
+                    'date_range': f"{pd.to_datetime(dates[p1['idx']]).strftime('%d.%m')}-{pd.to_datetime(dates[p5['idx']]).strftime('%d.%m')}",
+                    'vade': vade,
+                    "Points": {
+                        "p_start_idx": int(p1['idx']),
+                        "p_start_val": float(p1['price']),
+                        "p_end_idx": int(p5['idx']),
+                        "p_end_val": float(p5['price']),
+                        "f_end_idx": int(curr_idx),
+                        "head_idx": int(p3['idx']),
+                        "head_val": float(p3['price']),
+                        "res_start": float(p2['price']),
+                        "res_end": float(p4['price']),
+                        "sup_start": float(min_low),
+                        "sup_end": float(min_low)
+                    },
+                    "Formasyon": "Triple Bottom",
+                    "Symbol": "N/A"
+                })
+                
+            # --- TRIPLE TOP ---
+            elif p5['type'] == 'high' and p4['type'] == 'low' and p3['type'] == 'high' and p2['type'] == 'low' and p1['type'] == 'high':
+                # Check that three highs are roughly equal (within 3% tolerance)
+                max_high = max(p1['price'], p3['price'], p5['price'])
+                min_high = min(p1['price'], p3['price'], p5['price'])
+                high_diff = (max_high - min_high) / max_high
+                if high_diff > 0.03: continue
+                
+                # Check that the two troughs are lower than highs
+                if p2['price'] > min_high * 0.98 or p4['price'] > min_high * 0.98: continue
+                
+                # Support Level is the average of the two troughs
+                sup_level = (p2['price'] + p4['price']) / 2.0
+                depth = max_high - sup_level
+                
+                status = "unconfirmed"
+                if curr_price < sup_level: status = "confirmed"
+                
+                entry = sup_level
+                target = sup_level - depth
+                stop = max_high
+                
+                vade = self.calculate_smart_vade(p5['idx'] - p1['idx'], 60, timeframe)
+                strategy = self.get_strategy_text(status, curr_price, entry, target, stop, "Triple Top")
+                
+                patterns.append({
+                    'name': 'Triple Top',
+                    'price': float(curr_price),
+                    'entry': float(entry),
+                    'target': float(target),
+                    'stop': float(stop),
+                    'status': status,
+                    'quality': 'Strong',
+                    'strategy': strategy,
+                    'type': 'triple_top',
+                    'score': 85,
+                    'date_range': f"{pd.to_datetime(dates[p1['idx']]).strftime('%d.%m')}-{pd.to_datetime(dates[p5['idx']]).strftime('%d.%m')}",
+                    'vade': vade,
+                    "Points": {
+                        "p_start_idx": int(p1['idx']),
+                        "p_start_val": float(p1['price']),
+                        "p_end_idx": int(p5['idx']),
+                        "p_end_val": float(p5['price']),
+                        "f_end_idx": int(curr_idx),
+                        "head_idx": int(p3['idx']),
+                        "head_val": float(p3['price']),
+                        "res_start": float(max_high),
+                        "res_end": float(max_high),
+                        "sup_start": float(p2['price']),
+                        "sup_end": float(p4['price'])
+                    },
+                    "Formasyon": "Triple Top",
+                    "Symbol": "N/A"
+                })
+
+        return patterns
+
     def detect_cup_zigzag(self, df, zz_points, timeframe="Günlük"):
         """Detects Cup and Handle using Elite standards (Rounded Bottom, Handle Slope)."""
         patterns = []
@@ -1047,7 +1153,7 @@ class Analyzer:
             cup_bottom_val = float('inf')
             
             scan_limit = max(0, i-20)
-            for j in range(i-2, scan_limit, -1):
+            for j in range(i-2, scan_limit - 1, -1):
                 pj = zz_points[j]
                 if pj['type'] == 'low':
                     cup_bottom_val = min(cup_bottom_val, pj['price'])
@@ -1418,6 +1524,161 @@ class Analyzer:
                 })
                 
         return sorted(patterns, key=lambda x: x['score'], reverse=True)[:1]
+
+    def detect_triangle_wedge(self, df, timeframe="Günlük"):
+        """Detects Ascending, Descending, Symmetrical Triangles and Rising, Falling Wedges."""
+        patterns = []
+        if df is None or len(df) < 25: return patterns
+        
+        close = df['Close'].values
+        high = df['High'].values
+        low = df['Low'].values
+        dates = df['Date'].values
+        curr_idx = len(df) - 1
+        curr_price = close[-1]
+        
+        # We scan the last 40 bars for peaks/troughs
+        lookback = 45
+        start_idx = max(0, curr_idx - lookback)
+        
+        # Find peaks and troughs (extrema of order 2 to ensure we get enough points)
+        peaks = signal.argrelextrema(high, np.greater, order=2)[0]
+        troughs = signal.argrelextrema(low, np.less, order=2)[0]
+        
+        # Filter recent ones in our lookback range
+        peaks = [p for p in peaks if p >= start_idx and p <= curr_idx]
+        troughs = [t for t in troughs if t >= start_idx and t <= curr_idx]
+        
+        # We need at least 3 peaks and 3 troughs to perform robust linear regression
+        if len(peaks) < 3 or len(troughs) < 3:
+            return patterns
+            
+        # Linear Regression on Peaks (Resistance Line)
+        x_peaks = np.array(peaks) - start_idx
+        y_peaks = high[peaks]
+        m_res, c_res, r_res, _, _ = linregress(x_peaks, y_peaks)
+        
+        # Linear Regression on Troughs (Support Line)
+        x_troughs = np.array(troughs) - start_idx
+        y_troughs = low[troughs]
+        m_sup, c_sup, r_sup, _, _ = linregress(x_troughs, y_troughs)
+        
+        # R-squared check to ensure line fits reasonably (R^2 > 0.15)
+        # We relax this because price data contains noise.
+        if (r_res**2 < 0.15) or (r_sup**2 < 0.15):
+            return patterns
+            
+        # Check if they converge in the future (slope_res < slope_sup)
+        # i.e., distance between them decreases
+        converging = m_res < m_sup
+        
+        # Let's classify based on slopes
+        pat_type = None
+        pat_name = None
+        direction = None
+        
+        # Threshold for flat line (near 0 slope)
+        flat_threshold = 0.05
+        
+        # Slopes normalized by price level
+        avg_price = close[start_idx:].mean()
+        norm_m_res = m_res / avg_price * 100 # % change per bar
+        norm_m_sup = m_sup / avg_price * 100
+        
+        # 1. Ascending Triangle (Flat Top, Rising Bottom)
+        if abs(norm_m_res) < flat_threshold and norm_m_sup > flat_threshold:
+            pat_type = "ascending_triangle"
+            pat_name = "Yükselen Üçgen"
+            direction = "Bullish"
+            
+        # 2. Descending Triangle (Flat Bottom, Falling Top)
+        elif abs(norm_m_sup) < flat_threshold and norm_m_res < -flat_threshold:
+            pat_type = "descending_triangle"
+            pat_name = "Alçalan Üçgen"
+            direction = "Bearish"
+            
+        # 3. Symmetrical Triangle (Falling Top, Rising Bottom)
+        elif norm_m_res < -flat_threshold and norm_m_sup > flat_threshold and converging:
+            pat_type = "symmetrical_triangle"
+            pat_name = "Simetrik Üçgen"
+            direction = "Neutral" # Can break either way, but we track it
+            
+        # 4. Falling Wedge (Both falling, Top falling faster)
+        elif norm_m_res < -flat_threshold and norm_m_sup < -flat_threshold and converging:
+            pat_type = "falling_wedge"
+            pat_name = "Alçalan Kama"
+            direction = "Bullish" # Bullish Reversal
+            
+        # 5. Rising Wedge (Both rising, Bottom rising faster)
+        elif norm_m_res > flat_threshold and norm_m_sup > flat_threshold and converging:
+            pat_type = "rising_wedge"
+            pat_name = "Yükselen Kama"
+            direction = "Bearish" # Bearish Reversal
+            
+        if not pat_type:
+            return patterns
+            
+        # Breakout calculation
+        x_curr = curr_idx - start_idx
+        res_price = (m_res * x_curr) + c_res
+        sup_price = (m_sup * x_curr) + c_sup
+        
+        status = "unconfirmed"
+        if direction == "Bullish" and curr_price > res_price:
+            status = "confirmed"
+        elif direction == "Bearish" and curr_price < sup_price:
+            status = "confirmed"
+        elif direction == "Neutral":
+            if curr_price > res_price:
+                status = "confirmed"
+                direction = "Bullish"
+            elif curr_price < sup_price:
+                status = "confirmed"
+                direction = "Bearish"
+                
+        # Targets and Stops
+        depth = res_price - sup_price
+        if direction == "Bullish":
+            entry = res_price
+            target = res_price + depth
+            stop = sup_price
+        else:
+            entry = sup_price
+            target = sup_price - depth
+            stop = res_price
+            
+        vade = self.calculate_smart_vade(lookback, 60, timeframe)
+        strategy = self.get_strategy_text(status, curr_price, entry, target, stop, pat_name)
+        
+        patterns.append({
+            'name': pat_name,
+            'price': float(curr_price),
+            'entry': float(entry),
+            'target': float(target),
+            'stop': float(stop),
+            'status': status,
+            'quality': 'Good',
+            'strategy': strategy,
+            'type': pat_type,
+            'score': 80,
+            'date_range': f"{pd.to_datetime(dates[start_idx]).strftime('%d.%m')}-{pd.to_datetime(dates[curr_idx]).strftime('%d.%m')}",
+            'vade': vade,
+            "Points": {
+                "p_start_idx": int(start_idx),
+                "p_start_val": float(close[start_idx]),
+                "p_end_idx": int(curr_idx),
+                "p_end_val": float(curr_price),
+                "f_end_idx": int(curr_idx),
+                "res_start": float((m_res * 0) + c_res),
+                "res_end": float(res_price),
+                "sup_start": float((m_sup * 0) + c_sup),
+                "sup_end": float(sup_price)
+            },
+            "Formasyon": pat_name,
+            "Symbol": "N/A"
+        })
+        
+        return patterns
 
     def detect_rsi_divergence(self, df, zz_points=None, timeframe="Günlük"):
         """
@@ -1802,6 +2063,21 @@ class Analyzer:
             if self.config['enabled_patterns'].get('rsi_div', False):
                 div_pats = self.detect_rsi_divergence(df, zz_points, timeframe)
                 patterns.extend(div_pats)
+            
+            # 6. Rocket (High Tight Flag)
+            if self.config['enabled_patterns'].get('rocket', True):
+                rocket_pats = self.detect_high_tight_flag(df)
+                patterns.extend(rocket_pats)
+                
+            # 7. Triple Bottom & Triple Top
+            if self.config['enabled_patterns'].get('triple_bottom_top', True):
+                triple_pats = self.detect_triple_bottom_top(df, zz_points, timeframe)
+                patterns.extend(triple_pats)
+                
+            # 8. Triangles & Wedges
+            if self.config['enabled_patterns'].get('triangle_wedge', True):
+                tri_pats = self.detect_triangle_wedge(df, timeframe)
+                patterns.extend(tri_pats)
             
         except Exception as e:
             print(f"Error in pattern detection: {e}")

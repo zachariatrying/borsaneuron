@@ -22,7 +22,7 @@ except ImportError:
 
 # --- Sayfa Yapılandırması ---
 st.set_page_config(
-    page_title="BORSANEURON | ALGORİTMİK TİCARET VE YAPAY ZEKA TERMİNALİ",
+    page_title="BORSANEURON | ALGORITMIC TRADING & AI WORKSTATION",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -158,10 +158,15 @@ st.markdown(TERMINAL_CSS, unsafe_allow_html=True)
 @st.cache_data(ttl=3600)
 def load_data():
     paths = [
+        "bist_ai_dataset_real_30cols.csv.xz",
         "bist_ai_dataset_real_30cols.csv",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'bist_ai_dataset_real_30cols.csv.xz'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'bist_ai_dataset_real_30cols.csv'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bist_ai_dataset_real_30cols.csv.xz'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), 'bist_ai_dataset_real_30cols.csv'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'bist_ai_dataset_real_30cols.csv.xz'),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'bist_ai_dataset_real_30cols.csv'),
+        "/mount/src/borsaneuron/bist_ai_dataset_real_30cols.csv.xz",
         "/mount/src/borsaneuron/bist_ai_dataset_real_30cols.csv"
     ]
     for p in paths:
@@ -172,88 +177,82 @@ def load_data():
 df = load_data()
 
 if df is None:
-    st.error("Veriseti bulunamadı! Lütfen 'bist_ai_dataset_real_30cols.csv' dosyasının doğru yerde olduğundan emin olun.")
+    st.error("Dataset not found! Please make sure 'bist_ai_dataset_real_30cols.csv.xz' or 'bist_ai_dataset_real_30cols.csv' is in the correct path.")
     st.stop()
 
-# --- Kurumsal Sol Menü Navigasyonu (Sidebar Navigation) ---
+# --- Corporate Sidebar Navigation ---
 st.sidebar.markdown("<div class='brand-header'>BORSANEURON</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div style='font-size:0.75rem; color:#64748b; letter-spacing:1px; text-transform:uppercase; margin-top:-10px; margin-bottom:20px; font-family:\"Roboto Mono\", monospace;'>QUANTITATIVE SYSTEMS</div>", unsafe_allow_html=True)
 
-page = st.sidebar.radio("ANALİTİK MODÜLLER", [
-    "Sistem Tanıtımı & Dokümantasyon",
-    "Açıklayıcı Veri Analizi (EDA)",
-    "Korelasyon ve Boyut Eleme",
-    "Piyasa Rejim Sınıflandırması",
-    "Makine Öğrenmesi Model Analizleri",
-    "Zaman Serisi Trend Tahmini",
-    "Canlı Hisse Sorgulama & Çıkarım",
-    "Portföy Simülasyonu ve Backtest",
-    "Otomatik Formasyon Tarayıcı"
+page = st.sidebar.radio("ANALYTICAL MODULES", [
+    "System Overview & Documentation",
+    "Exploratory Data Analysis (EDA)",
+    "Feature Correlation & Selection",
+    "Market Regime Clustering",
+    "Machine Learning Model Analysis",
+    "Time-Series Trend Forecasting",
+    "Live Stock Query & Inference",
+    "Portfolio Backtesting & Simulation",
+    "Automated Pattern Scanner"
 ])
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("<div style='font-size:0.7rem; color:#475569; font-family:\"Roboto Mono\", monospace;'>AKTİF PORTFÖY MOTORU: XGBoost Classifier<br>VERİ TABANI GÜNCELLEME: Canlı (yFinance)<br>SÜRÜM: v2.5.0-BIST</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='font-size:0.7rem; color:#475569; font-family:\"Roboto Mono\", monospace;'>ACTIVE PORTFOLIO ENGINE: XGBoost Classifier<br>DATABASE UPDATE: Live (yFinance)<br>VERSION: v2.5.0-BIST</div>", unsafe_allow_html=True)
 
-# ==========================================
-# MODÜL 0: SİSTEM TANITIMI & DOKÜMANTASYON
-# ==========================================
-if page == "Sistem Tanıtımı & Dokümantasyon":
-    st.markdown("### Sistem Genel Bakış ve Analitik Altyapı")
-    st.markdown("Borsa İstanbul (BIST) pay piyasalarındaki hisse senetlerinin nicel teknik göstergeleri ve makine öğrenmesi modelleri kullanılarak analiz edilmesi amacıyla geliştirilmiş bütünsel karar destek platformu.")
+if page == "System Overview & Documentation":
+    st.markdown("### System Overview & Analytical Infrastructure")
+    st.markdown("A unified decision support platform designed to analyze stocks in the Borsa Istanbul (BIST) equity market using quantitative technical indicators and statistical machine learning models.")
     
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
         <div class='terminal-card'>
-            <div class='metric-label'>Sınıflandırma Hedefi (Target_T5)</div>
-            <div class='metric-value'>5 Günlük Yön</div>
-            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>Hisse senedinin 5 işlem günü sonraki kapanış fiyatının bugünkünden yüksek olma olasılığı.</p>
+            <div class='metric-label'>Classification Target (Target_T5)</div>
+            <div class='metric-value'>5-Day Direction</div>
+            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>Probability of the stock's closing price in 5 trading days being higher than today's.</p>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown("""
         <div class='terminal-card'>
-            <div class='metric-label'>Kapsanan Aktif Hisse</div>
-            <div class='metric-value'>537 Ticker</div>
-            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>BIST genelini temsil eden ve temizleme adımlarından başarıyla geçen tüm aktif hisse senetleri.</p>
+            <div class='metric-label'>Active Stocks Covered</div>
+            <div class='metric-value'>537 Tickers</div>
+            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>All active stocks representing the BIST market that successfully passed data cleaning steps.</p>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown("""
         <div class='terminal-card'>
-            <div class='metric-label'>Üretilen Teknik Metrikler</div>
-            <div class='metric-value'>30 Gösterge</div>
-            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>Momentum, volatilite, hacim ve trend eğilimlerini temsil eden yapılandırılmış nicel değişken seti.</p>
+            <div class='metric-label'>Generated Technical Metrics</div>
+            <div class='metric-value'>30 Indicators</div>
+            <p style='font-size:0.8rem; color:#94a3b8; margin-top:8px;'>Structured quantitative feature set representing momentum, volatility, volume, and trend dynamics.</p>
         </div>
         """, unsafe_allow_html=True)
         
-    st.markdown("#### BorsaNeuron Metodolojik İş Akışı")
+    st.markdown("#### BorsaNeuron Methodological Workflow")
     
     st.markdown("""
-    BIST teknik veritabanı altyapımız, çevrimdışı modelleme (offline training) ile çevrimiçi anlık kestirimi (online inference) birleştiren hibrit bir tasarıma sahiptir:
+    Our BIST technical database infrastructure utilizes a hybrid design that couples offline training with online real-time inference:
     
-    1. **Veri Madenciliği (Data Mining):** `yfinance` aracılığıyla akan BIST verileri üzerinden 30 farklı teknik indikatör değişkeni ve Target_T5 etiket sınıfı oluşturulur.
-    2. **Boyut İndirgeme ve Gürültü Filtreleme:** Pearson Korelasyon Analizi uygulanarak aralarında çoklu doğrusal bağlantı (multicollinearity) bulunan yüksek korelasyonlu değişkenler ayıklanır.
-    3. **Piyasa Koşulları Kümelemesi:** K-Means algoritması ile hisselerin teknik durumları 5 farklı piyasa rejim kümesinde segmente edilir ve PCA (Temel Bileşenler Analizi) ile haritalandırılır.
-    4. **Yapay Zeka Modellemesi:** K-En Yakın Komşu (K-NN), Yapay Sinir Ağları (ANN-MLP), Random Forest ve XGBoost modelleri optimize edilerek en yüksek F1-Skoruna sahip sınıflandırıcı çıkarım motoru olarak sisteme entegre edilir.
-    5. **Tarihsel Uyum (Win Rate) Modülasyonu:** Canlı hisse sorgulamalarında ilgili hissenin yapay zeka sinyallerine olan geçmiş uyumu ağırlıklandırılarak karar kararlılığı artırılır.
+    1. **Data Mining:** 30 technical indicator features and the `Target_T5` label class are generated from historical BIST data streams via `yfinance`.
+    2. **Dimensionality Reduction & Noise Filtering:** Pearson Correlation Analysis is applied to filter out highly correlated features, preventing multicollinearity issues.
+    3. **Market Regime Clustering:** The technical indicator profiles of BIST stocks are segmented into 5 distinct market regimes using the K-Means algorithm and mapped via Principal Component Analysis (PCA).
+    4. **AI Machine Learning Modeling:** Optimized classifiers including K-Nearest Neighbors (K-NN), Artificial Neural Networks (ANN-MLP), Random Forest, and XGBoost are evaluated, integrating the model with the highest F1-score as the active inference engine.
+    5. **Win-Rate Weighting Engine:** Real-time stock queries leverage a rolling backtest of the AI system to calculate a historical win rate for the queried stock, dynamically modulating risk warnings.
     """)
 
-# ==========================================
-# MODÜL 1: AÇIKLAYICI VERİ ANALİZİ (EDA)
-# ==========================================
-elif page == "Açıklayıcı Veri Analizi (EDA)":
-    st.markdown("### Açıklayıcı Veri Analizi ve Tanımlayıcı İstatistikler")
+elif page == "Exploratory Data Analysis (EDA)":
+    st.markdown("### Exploratory Data Analysis & Descriptive Statistics")
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("Toplam Kayıt Satırı", f"{df.shape[0]:,}")
-    col2.metric("Toplam Özellik Sütunu", f"{df.shape[1]}")
-    col3.metric("Eksik Veri Hücresi", "0" if not df.isnull().values.any() else f"{df.isnull().sum().sum()}")
+    col1.metric("Total Rows", f"{df.shape[0]:,}")
+    col2.metric("Total Columns (Features)", f"{df.shape[1]}")
+    col3.metric("Missing Value Cells", "0" if not df.isnull().values.any() else f"{df.isnull().sum().sum()}")
     
-    st.markdown("#### Örnek Veri Matrisi (İlk 5 Satır)")
+    st.markdown("#### Sample Data Matrix (First 5 Rows)")
     st.dataframe(df.head(), use_container_width=True)
     
-    st.markdown("#### Tanımlayıcı İstatistik Özetleri (Descriptive Statistics)")
+    st.markdown("#### Descriptive Statistics Summary")
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     desc = df[num_cols].describe().T
     st.dataframe(desc, use_container_width=True)
@@ -261,9 +260,9 @@ elif page == "Açıklayıcı Veri Analizi (EDA)":
     col_chart1, col_chart2 = st.columns(2)
     
     with col_chart1:
-        st.markdown("#### Hedef Değişken (Target_T5) Dağılımı")
+        st.markdown("#### Target Variable (Target_T5) Distribution")
         target_counts = df['Target_T5'].value_counts()
-        fig_target = px.pie(values=target_counts.values, names=['Düşüş (0)', 'Yükseliş (1)'],
+        fig_target = px.pie(values=target_counts.values, names=['Decrease / Flat (0)', 'Increase (1)'],
                             color_discrete_sequence=['#ef4444', '#10b981'])
         fig_target.update_layout(
             template="plotly_dark", 
@@ -273,7 +272,7 @@ elif page == "Açıklayıcı Veri Analizi (EDA)":
         st.plotly_chart(fig_target, use_container_width=True)
         
     with col_chart2:
-        st.markdown("#### Gösterge Frekans Dağılımı: RSI_14")
+        st.markdown("#### Feature Frequency Distribution: RSI_14")
         fig_rsi = px.histogram(df, x='RSI_14', nbins=50, color_discrete_sequence=['#3b82f6'])
         fig_rsi.update_layout(
             template="plotly_dark", 
@@ -282,22 +281,19 @@ elif page == "Açıklayıcı Veri Analizi (EDA)":
         )
         st.plotly_chart(fig_rsi, use_container_width=True)
         
-    st.markdown("#### Yön Sınıfına (Target_T5) Göre Gösterge Ortalamaları")
+    st.markdown("#### Feature Averages Grouped by Target Class (Target_T5)")
     indicator_cols = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend']
     target_means = df.groupby('Target_T5')[indicator_cols].mean()
     st.dataframe(target_means, use_container_width=True)
 
-# ==========================================
-# MODÜL 2: KORELASYON VE BOYUT ELEME
-# ==========================================
-elif page == "Korelasyon ve Boyut Eleme":
-    st.markdown("### Korelasyon Analizi ve Çoklu Doğrusallık Filtreleme")
+elif page == "Feature Correlation & Selection":
+    st.markdown("### Correlation Analysis & Multicollinearity Filtering")
     
-    with st.expander("Metodoloji Açıklaması", expanded=True):
+    with st.expander("Methodology Description", expanded=True):
         st.markdown('''
-        * Çoklu doğrusal bağlantı (multicollinearity), aynı veya benzer matematiksel formülasyona sahip göstergelerin modelde gürültü oluşturmasına sebep olur.
-        * Pearson korelasyon katsayısı mutlak değeri $|r_{ij}| > 0.90$ olan çiftler belirlenerek üst üçgen matris filtresiyle ayıklanmıştır.
-        * Bu eleme süreci, modellerin aşırı öğrenme (overfitting) riskini azaltarak genellenebilirliği artırır.
+        * **Multicollinearity:** Indicators with identical or highly similar mathematical formulations create noise and redundancy in machine learning classifiers.
+        * Pearson correlation coefficients with absolute values $|r_{ij}| > 0.90$ are flagged and filtered out using an upper-triangular matrix filter.
+        * This feature selection process reduces the risk of model overfitting and enhances generalizability.
         ''')
     
     sensor_cols = df.select_dtypes(include=[np.number]).drop(
@@ -305,7 +301,7 @@ elif page == "Korelasyon ve Boyut Eleme":
     corr = sensor_cols.corr()
     
     fig_corr = px.imshow(corr, aspect="auto",
-                         title="Pearson Korelasyon Katsayı Matrisi (Heatmap)",
+                         title="Pearson Correlation Coefficient Matrix (Heatmap)",
                          color_continuous_scale="RdBu_r")
     fig_corr.update_layout(
         template="plotly_dark", 
@@ -315,34 +311,31 @@ elif page == "Korelasyon ve Boyut Eleme":
     )
     st.plotly_chart(fig_corr, use_container_width=True)
     
-    # Çoklu doğrusallık elemesi
+    # Multicollinearity elimination
     cor_matrix = sensor_cols.corr().abs()
     upper = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(bool))
     drop_list = [col for col in upper.columns if any(upper[col] > 0.90)]
     
-    st.markdown(f"#### Yüksek Korelasyon (>0.90) Nedeniyle Elenen Gösterge Seti ({len(drop_list)} Adet)")
+    st.markdown(f"#### Indicators Removed Due to High Correlation (>0.90) ({len(drop_list)} Features)")
     st.code(str(drop_list))
     
     remaining = [c for c in sensor_cols.columns if c not in drop_list]
-    st.markdown(f"#### Analize Dahil Edilen Bağımsız Gösterge Seti ({len(remaining)} Adet)")
+    st.markdown(f"#### Independent Feature Set Retained for Modeling ({len(remaining)} Features)")
     st.code(str(remaining))
 
-# ==========================================
-# MODÜL 3: PİYASA REJİM SINIFLANDIRMASI
-# ==========================================
-elif page == "Piyasa Rejim Sınıflandırması":
-    st.markdown("### K-Means Kümeleme ve PCA ile Piyasa Regülasyon Segmentasyonu")
+elif page == "Market Regime Clustering":
+    st.markdown("### Market Regime Segmentation Using K-Means & PCA")
     
-    with st.expander("Kümeleme ve Boyut İndirgeme Teorisi", expanded=True):
+    with st.expander("Clustering & Dimensionality Reduction Theory", expanded=True):
         st.markdown(r'''
-        * **K-Means Kümeleme:** Öznitelik vektörleri standartlaştırılarak ($z = (x - \mu)/\sigma$) Elbow yöntemi ile optimum segment sayısı $k=5$ olarak saptanmıştır.
-        * **Temel Bileşenler Analizi (PCA):** Yüksek boyutlu gösterge matrisi varyansı en çok açıklayan 2 ana bileşene (PC1 ve PC2) indirgenerek küme ayrışmaları 2 boyutlu uzayda incelenmiştir.
-        * **Piyasa Rejimi Karşılıkları:** İndikatör rejimleri aşırı yükseliş, kararlı trend, taban arayışı ve yatay konsolidasyon durumlarını temsil eder.
+        * **K-Means Clustering:** Features are standardized ($z = (x - \mu)/\sigma$) and segmented into $k=5$ optimum clusters, validated via Elbow analysis.
+        * **Principal Component Analysis (PCA):** Projects high-dimensional technical indicator matrices into 2 main components (PC1 and PC2) that explain the highest variance share, allowing 2D visual cluster analysis.
+        * **Regime Profiles:** Clusters correspond to distinct market profiles such as hyper-bullish, stable trend, consolidation, or recovery.
         ''')
     
-    k_clusters = st.slider("Hedef Küme Sayısı (k)", min_value=2, max_value=8, value=5)
+    k_clusters = st.slider("Target Clusters (k)", min_value=2, max_value=8, value=5)
     
-    # Hisse bazlı istatistikler
+    # Stock-based statistics
     ticker_stats = df.groupby('Ticker')[['ATR_14', 'Max_Drawdown_15D', 'Max_Gain_15D', 'RSI_14']].mean().dropna()
     scaler_km = StandardScaler()
     scaled_tickers = scaler_km.fit_transform(ticker_stats)
@@ -350,20 +343,20 @@ elif page == "Piyasa Rejim Sınıflandırması":
     kmeans = KMeans(n_clusters=k_clusters, random_state=42, n_init=10)
     ticker_stats['Cluster'] = kmeans.fit_predict(scaled_tickers)
     
-    st.markdown(f"**Küme İçi Karşıtlık Değeri (Inertia):** {kmeans.inertia_:.2f}")
+    st.markdown(f"**Within-Cluster Inertia (Sum of Squared Errors):** {kmeans.inertia_:.2f}")
     
-    # PCA 2D İndirgeme
+    # PCA 2D Projection
     pca = PCA(n_components=2)
     pca_res = pca.fit_transform(scaled_tickers)
     ticker_stats['PCA1'] = pca_res[:, 0]
     ticker_stats['PCA2'] = pca_res[:, 1]
     
-    st.markdown(f"**PCA Toplam Açıklanan Varyans Payı:** PC1 = {pca.explained_variance_ratio_[0]*100:.1f}%, PC2 = {pca.explained_variance_ratio_[1]*100:.1f}%")
+    st.markdown(f"**PCA Total Explained Variance Ratio:** PC1 = {pca.explained_variance_ratio_[0]*100:.1f}%, PC2 = {pca.explained_variance_ratio_[1]*100:.1f}%")
     
     fig2 = px.scatter(
         ticker_stats.reset_index(), x="PCA1", y="PCA2",
         color="Cluster", hover_data=["Ticker", "ATR_14", "Max_Gain_15D"],
-        title="K-Means Regülasyon Kümeleri - PCA 2D İzdüşümü",
+        title="K-Means Market Regimes - PCA 2D Projection",
         color_continuous_scale="Turbo"
     )
     fig2.update_traces(marker=dict(size=10, opacity=0.85, line=dict(width=0.5, color='rgba(255,255,255,0.2)')))
@@ -374,16 +367,16 @@ elif page == "Piyasa Rejim Sınıflandırması":
     )
     st.plotly_chart(fig2, use_container_width=True)
     
-    st.markdown("#### Küme Merkezleri Detay Tablosu (Öznitelik Ortalamaları)")
+    st.markdown("#### Cluster Centers Detailed Matrix (Feature Averages)")
     st.dataframe(ticker_stats.groupby('Cluster')[['ATR_14', 'Max_Drawdown_15D', 'Max_Gain_15D', 'RSI_14']].mean())
     
-    # Kümülatif varyans grafiği
+    # Cumulative Variance Curve
     pca_full = PCA()
     pca_full.fit(scaled_tickers)
     cumvar = np.cumsum(pca_full.explained_variance_ratio_)
     fig_var = px.line(x=range(1, len(cumvar)+1), y=cumvar,
-                      title="PCA Kümülatif Açıklanan Varyans Eğrisi",
-                      labels={'x': 'Bileşen Sayısı', 'y': 'Kümülatif Varyans Oranı'},
+                      title="PCA Cumulative Explained Variance Curve",
+                      labels={'x': 'Number of Components', 'y': 'Cumulative Variance Ratio'},
                       color_discrete_sequence=['#3b82f6'])
     fig_var.update_layout(
         template="plotly_dark", 
@@ -392,26 +385,23 @@ elif page == "Piyasa Rejim Sınıflandırması":
     )
     st.plotly_chart(fig_var, use_container_width=True)
 
-# ==========================================
-# MODÜL 4: MAKİNE ÖĞRENMESİ MODEL ANALİZLERİ
-# ==========================================
-elif page == "Makine Öğrenmesi Model Analizleri":
-    st.markdown("### Denetimli Öğrenme Sınıflandırıcılarının Performans Kıyaslaması")
-    st.markdown("K-En Yakın Komşu (K-NN), Random Forest (Rastgele Orman) ve Yapay Sinir Ağları (ANN-MLP) modellerinin karşılaştırmalı analizleri.")
+elif page == "Machine Learning Model Analysis":
+    st.markdown("### Performance Comparison of Supervised Learning Classifiers")
+    st.markdown("Comparative analysis of K-Nearest Neighbors (K-NN), Random Forest, and Artificial Neural Networks (ANN-MLP) classifiers.")
     
-    with st.expander("Model Yapılandırma Parametreleri", expanded=True):
+    with st.expander("Model Configuration Parameters", expanded=True):
         st.markdown(r'''
-        * **K-NN Sınıflandırıcı:** Komşuluk parametresi $k \in \{3..21\}$ aralığında GridSearchCV 5-Fold Çapraz Doğrulama (Cross-Validation) ile optimize edilmiştir.
-        * **Random Forest:** `n_estimators=100`, Gini Impurity kriteri ve bootstrap yöntemiyle eğitilmiştir.
-        * **Yapay Sinir Ağı (MLP):** `hidden_layer_sizes=(64, 32, 16)`, aktivasyon fonksiyonu ReLU, optimizasyon algoritması Adam olarak kurgulanmıştır.
-        * **Ölçekleme Metodu:** StandardScaler z-skor normalizasyonu uygulanmıştır.
+        * **K-NN Classifier:** Optimum neighborhood parameter $k \in \{3..21\}$ is determined via GridSearchCV with 5-Fold Cross-Validation.
+        * **Random Forest:** Trained with `n_estimators=100`, Gini Impurity splits, and bootstrapping enabled.
+        * **Neural Network (MLP):** Configured with `hidden_layer_sizes=(64, 32, 16)`, ReLU activation, and Adam optimization.
+        * **Scaling Method:** StandardScaler z-score normalization is applied to all input features.
         ''')
     
     features = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
     df_ml = df.dropna(subset=features + ['Target_T5']).copy()
     
-    if st.button("Model Eğitim Süreçlerini Başlat", key="train_btn", type="primary"):
-        with st.spinner("Modeller çapraz doğrulamalı eğitim matrisinde çalıştırılıyor..."):
+    if st.button("Start Model Training Matrix", key="train_btn", type="primary"):
+        with st.spinner("Executing cross-validated model training pipeline..."):
             X = df_ml[features]
             y = df_ml['Target_T5']
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -444,27 +434,27 @@ elif page == "Makine Öğrenmesi Model Analizleri":
             ann_acc = accuracy_score(y_test, ann_pred)
             ann_f1 = f1_score(y_test, ann_pred)
             
-            # Metrik Kartları
+            # Metric Cards
             col1, col2, col3 = st.columns(3)
             for col, name, acc, f1v in [(col1, f"K-NN (Optimum k={best_k})", knn_acc, knn_f1),
                                          (col2, "Random Forest", rf_acc, rf_f1),
-                                         (col3, "Yapay Sinir Ağı (MLP)", ann_acc, ann_f1)]:
+                                         (col3, "Neural Network (MLP)", ann_acc, ann_f1)]:
                 with col:
                     st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
                     st.markdown(f"<div class='metric-label'>{name}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div class='metric-value'>%{acc*100:.2f}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<span style='font-size:0.8rem; color:#94a3b8;'>F1-Skoru: {f1v:.4f}</span>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='metric-value'>{acc*100:.2f}%</div>", unsafe_allow_html=True)
+                    st.markdown(f"<span style='font-size:0.8rem; color:#94a3b8;'>F1-Score: {f1v:.4f}</span>", unsafe_allow_html=True)
                     st.markdown("</div>", unsafe_allow_html=True)
             
-            # Performans Karşılaştırma Grafiği
+            # Performance Comparison Plot
             results_df = pd.DataFrame({
-                'Model': [f'K-NN (k={best_k})', 'Random Forest', 'Yapay Sinir Ağı (MLP)'],
-                'Doğruluk (Accuracy)': [knn_acc, rf_acc, ann_acc],
-                'F1-Skoru': [knn_f1, rf_f1, ann_f1]
+                'Model': [f'K-NN (k={best_k})', 'Random Forest', 'Neural Network (MLP)'],
+                'Accuracy': [knn_acc, rf_acc, ann_acc],
+                'F1-Score': [knn_f1, rf_f1, ann_f1]
             })
             
-            fig_comp = px.bar(results_df, x='Model', y=['Doğruluk (Accuracy)', 'F1-Skoru'],
-                              barmode='group', title="Modellerin Dışsal Test Başarı Karşılaştırması",
+            fig_comp = px.bar(results_df, x='Model', y=['Accuracy', 'F1-Score'],
+                              barmode='group', title="Out-of-Sample Test Score Comparison",
                               color_discrete_sequence=['#3b82f6', '#10b981'])
             fig_comp.update_layout(
                 template="plotly_dark", 
@@ -473,10 +463,10 @@ elif page == "Makine Öğrenmesi Model Analizleri":
             )
             st.plotly_chart(fig_comp, use_container_width=True)
             
-            # Özellik Önem Dereceleri (Feature Importance)
+            # Feature Importance
             importances = rf.feature_importances_
             fig_fi = px.bar(x=importances, y=features, orientation='h',
-                            title="Random Forest Gini Impurity Özellik Önem Kıyaslaması",
+                            title="Random Forest Gini Impurity Feature Importance",
                             color=importances, color_continuous_scale="Viridis")
             fig_fi.update_layout(
                 template="plotly_dark", 
@@ -485,29 +475,26 @@ elif page == "Makine Öğrenmesi Model Analizleri":
             )
             st.plotly_chart(fig_fi, use_container_width=True)
             
-            st.info(f"GridSearchCV sonucuna göre optimize edilmiş en iyi K-NN komşu parametresi: {best_k} (Çapraz Doğrulama Accuracy: {knn_gs.best_score_:.4f})")
+            st.info(f"GridSearchCV optimal parameter for K-NN: k={best_k} (Cross-Validation Accuracy: {knn_gs.best_score_:.4f})")
 
-# ==========================================
-# MODÜL 5: ZAMAN SERİSİ TREND TAHMİNİ
-# ==========================================
-elif page == "Zaman Serisi Trend Tahmini":
-    st.markdown("### Meta Prophet Algoritması ile Gelecek Fiyat Eğilimi Modeli")
+elif page == "Time-Series Trend Forecasting":
+    st.markdown("### Time-Series Price Trend Modeling Using Meta Prophet")
     
-    with st.expander("Zaman Serisi Modelleme İlkeleri", expanded=True):
+    with st.expander("Time-Series Modeling Principles", expanded=True):
         st.markdown('''
-        * **Prophet Algoritması:** Trend, mevsimsellik ve tatil etkilerini toplanabilir (additive) bir regresyon denkleminde modelleyen zaman serisi tekniğidir.
-        * **Yapılandırma:** Günlük mevsimsellik devre dışı bırakılmış, yıllık mevsimsellik ve makro trend eğrileri aktif edilmiştir.
-        * **Nicel Yorum:** Bu model anlık indikatör kırılımlarından ziyade hissenin makro momentum ve fiyat patikasını tahmin etmek için kullanılır.
+        * **Prophet Algorithm:** A forecasting technique that models trends, seasonalities, and holiday effects in an additive regression equation.
+        * **Configuration:** Daily seasonality is disabled; yearly seasonality and macro-trend curves are enabled.
+        * **Quantitative Interpretation:** This model is used to forecast the macro-momentum and long-term price trajectory of the stock rather than short-term indicator breakouts.
         ''')
     
     if Prophet is None:
-        st.error("Prophet kütüphanesi ortamda kurulu değil. Lütfen sistem bağımlılıklarını kontrol edin.")
+        st.error("Prophet library is not installed in this environment. Please check system dependencies.")
     else:
-        selected_ticker = st.selectbox("Analiz Edilecek Hisse Kodu", df['Ticker'].unique()[:50], index=0)
-        days_ahead = st.slider("Öngörü Vadesi (Gün)", 10, 90, 60)
+        selected_ticker = st.selectbox("Stock Ticker to Analyze", df['Ticker'].unique()[:50], index=0)
+        days_ahead = st.slider("Forecasting Horizon (Days)", 10, 90, 60)
         
-        if st.button("Tahmin Matrisini Çalıştır", key="prophet_btn", type="primary"):
-            with st.spinner("Prophet makro trend modeli eğitiliyor..."):
+        if st.button("Run Forecast Matrix", key="prophet_btn", type="primary"):
+            with st.spinner("Training Prophet macro-trend model..."):
                 df_ticker = df[df['Ticker'] == selected_ticker].copy()
                 df_ticker['Date'] = pd.to_datetime(df_ticker['Date'])
                 df_ticker = df_ticker.sort_values('Date')
@@ -519,12 +506,12 @@ elif page == "Zaman Serisi Trend Tahmini":
                 forecast = m.predict(future)
                 
                 fig3 = go.Figure()
-                fig3.add_trace(go.Scatter(x=df_prophet['ds'], y=df_prophet['y'], mode='lines', name='Tarihsel Gerçek Fiyat', line=dict(color='#10b981', width=1.5)))
-                fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Prophet Trend Modeli', line=dict(color='#3b82f6', width=2)))
+                fig3.add_trace(go.Scatter(x=df_prophet['ds'], y=df_prophet['y'], mode='lines', name='Historical Real Price', line=dict(color='#10b981', width=1.5)))
+                fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Prophet Trend Model', line=dict(color='#3b82f6', width=2)))
                 fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], fill=None, mode='lines', line_color='rgba(59,130,246,0)', showlegend=False))
-                fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], fill='tonexty', mode='lines', fillcolor='rgba(59,130,246,0.12)', line_color='rgba(59,130,246,0)', name='Güven Sınırı Aralığı'))
+                fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], fill='tonexty', mode='lines', fillcolor='rgba(59,130,246,0.12)', line_color='rgba(59,130,246,0)', name='Confidence Interval'))
                 fig3.update_layout(
-                    title=f"{selected_ticker} - {days_ahead} Günlük Makro Fiyat Patikası Tahmini",
+                    title=f"{selected_ticker} - {days_ahead} Day Macro Price Trajectory Forecast",
                     template="plotly_dark", 
                     plot_bgcolor="rgba(0,0,0,0)", 
                     paper_bgcolor="rgba(0,0,0,0)",
@@ -535,54 +522,54 @@ elif page == "Zaman Serisi Trend Tahmini":
 # ==========================================
 # MODÜL 6: CANLI HİSSE SORGULAMA & TAHMİN
 # ==========================================
-elif page == "Canlı Hisse Sorgulama & Çıkarım":
-    st.markdown("### Gerçek Zamanlı Çıkarım, Makine Öğrenmesi Kararı ve Sektörel Karşılaştırma")
-    st.markdown("Herhangi bir BIST hisse sembolü girerek, canlı yFinance akışından anlık teknik metrikleri hesaplayın ve yapay zeka çıkarımı alın.")
+elif page == "Live Stock Query & Inference":
+    st.markdown("### Real-Time Inference, Machine Learning Decision & Sector Comparison")
+    st.markdown("Enter any BIST stock ticker symbol to compute instant technical metrics from live yFinance streams and receive AI model inferences.")
     
-    # Sektör referans veri seti haritası
+    # Sector reference mapping
     SECTOR_MAP = {
-        "AKBNK.IS": "Bankacılık", "GARAN.IS": "Bankacılık", "ISCTR.IS": "Bankacılık", "YKBNK.IS": "Bankacılık", 
-        "HALKB.IS": "Bankacılık", "VAKBN.IS": "Bankacılık", "TSKB.IS": "Bankacılık", "ALBRK.IS": "Bankacılık", 
-        "SKBNK.IS": "Bankacılık", "QNBFB.IS": "Bankacılık",
+        "AKBNK.IS": "Banking", "GARAN.IS": "Banking", "ISCTR.IS": "Banking", "YKBNK.IS": "Banking", 
+        "HALKB.IS": "Banking", "VAKBN.IS": "Banking", "TSKB.IS": "Banking", "ALBRK.IS": "Banking", 
+        "SKBNK.IS": "Banking", "QNBFB.IS": "Banking",
         "KCHOL.IS": "Holding", "SAHOL.IS": "Holding", "DOHOL.IS": "Holding", "AGHOL.IS": "Holding", 
         "ALARK.IS": "Holding", "TEKTU.IS": "Holding", "GSDHO.IS": "Holding", "IHLAS.IS": "Holding", 
         "POLHO.IS": "Holding", "BERA.IS": "Holding", "TKFEN.IS": "Holding",
-        "EREGL.IS": "Sanayi & Metal", "KRDMD.IS": "Sanayi & Metal", "ISDMR.IS": "Sanayi & Metal", 
-        "TUPRS.IS": "Sanayi & Metal", "PETKM.IS": "Sanayi & Metal", "KOZAL.IS": "Sanayi & Metal", 
-        "KOZAA.IS": "Sanayi & Metal", "IPEKE.IS": "Sanayi & Metal", "CIMSA.IS": "Sanayi & Metal", 
-        "OYAKC.IS": "Sanayi & Metal", "BUCIM.IS": "Sanayi & Metal", "BSOKE.IS": "Sanayi & Metal", 
-        "KCAER.IS": "Sanayi & Metal",
-        "FROTO.IS": "Otomotiv", "TOASO.IS": "Otomotiv", "DOAS.IS": "Otomotiv", "TTRAK.IS": "Otomotiv", 
-        "KARSN.IS": "Otomotiv", "OTKAR.IS": "Otomotiv", "TMSN.IS": "Otomotiv", "ASUZU.IS": "Otomotiv",
-        "ASTOR.IS": "Enerji", "ENKAI.IS": "Enerji", "ODAS.IS": "Enerji", "AKSEN.IS": "Enerji", 
-        "ZOREN.IS": "Enerji", "AYDEM.IS": "Enerji", "BIOEN.IS": "Enerji", "HUNER.IS": "Enerji", 
-        "SMRTG.IS": "Enerji", "EUPWR.IS": "Enerji", "GWIND.IS": "Enerji", "YEOTK.IS": "Enerji", 
-        "ALFAS.IS": "Enerji", "CWENE.IS": "Enerji", "AKFYE.IS": "Enerji", "ENJSA.IS": "Enerji", 
-        "AENER.IS": "Enerji",
-        "EKGYO.IS": "GYO (Gayrimenkul)", "ISGYO.IS": "GYO (Gayrimenkul)", "TRGYO.IS": "GYO (Gayrimenkul)", 
-        "AKFGY.IS": "GYO (Gayrimenkul)", "SNGYO.IS": "GYO (Gayrimenkul)", "OZKGY.IS": "GYO (Gayrimenkul)", 
-        "HLGYO.IS": "GYO (Gayrimenkul)", "ASGYO.IS": "GYO (Gayrimenkul)", "KLGYO.IS": "GYO (Gayrimenkul)",
-        "THYAO.IS": "Ulaştırma", "PGSUS.IS": "Ulaştırma", "TAVHL.IS": "Ulaştırma", "CLEBI.IS": "Ulaştırma", 
-        "RYSAS.IS": "Ulaştırma", "TLMAN.IS": "Ulaştırma",
-        "BIMAS.IS": "Gıda & Perakende", "MGROS.IS": "Gıda & Perakende", "SOKM.IS": "Gıda & Perakende", 
-        "ULKER.IS": "Gıda & Perakende", "CCOLA.IS": "Gıda & Perakende", "AEFES.IS": "Gıda & Perakende", 
-        "TUKAS.IS": "Gıda & Perakende", "TATGD.IS": "Gıda & Perakende", "KRYST.IS": "Gıda & Perakende", 
-        "PETUN.IS": "Gıda & Perakende", "SUWEN.IS": "Gıda & Perakende",
-        "KONTR.IS": "Teknoloji & Yazılım", "MIATK.IS": "Teknoloji & Yazılım", "ASELS.IS": "Teknoloji & Yazılım", 
-        "PENTA.IS": "Teknoloji & Yazılım", "LOGO.IS": "Teknoloji & Yazılım", "ARDYZ.IS": "Teknoloji & Yazılım", 
-        "VBTYZ.IS": "Teknoloji & Yazılım", "NETAS.IS": "Teknoloji & Yazılım", "KFEIN.IS": "Teknoloji & Yazılım", 
-        "SMART.IS": "Teknoloji & Yazılım", "SDTTR.IS": "Teknoloji & Yazılım", "REEDR.IS": "Teknoloji & Yazılım",
-        "ARCLK.IS": "Dayanıklı Tüketim", "VESBE.IS": "Dayanıklı Tüketim", "VESTL.IS": "Dayanıklı Tüketim",
-        "SISE.IS": "Cam & Seramik", "KLMSN.IS": "Cam & Seramik", "EGSER.IS": "Cam & Seramik", "KUTPO.IS": "Cam & Seramik",
-        "TCELL.IS": "İletişim", "TTKOM.IS": "İletişim",
-        "TURSG.IS": "Sigorta", "AKGRT.IS": "Sigorta", "ANHYT.IS": "Sigorta", "ANSGR.IS": "Sigorta"
+        "EREGL.IS": "Industry & Metal", "KRDMD.IS": "Industry & Metal", "ISDMR.IS": "Industry & Metal", 
+        "TUPRS.IS": "Industry & Metal", "PETKM.IS": "Industry & Metal", "KOZAL.IS": "Industry & Metal", 
+        "KOZAA.IS": "Industry & Metal", "IPEKE.IS": "Industry & Metal", "CIMSA.IS": "Industry & Metal", 
+        "OYAKC.IS": "Industry & Metal", "BUCIM.IS": "Industry & Metal", "BSOKE.IS": "Industry & Metal", 
+        "KCAER.IS": "Industry & Metal",
+        "FROTO.IS": "Automotive", "TOASO.IS": "Automotive", "DOAS.IS": "Automotive", "TTRAK.IS": "Automotive", 
+        "KARSN.IS": "Automotive", "OTKAR.IS": "Automotive", "TMSN.IS": "Automotive", "ASUZU.IS": "Automotive",
+        "ASTOR.IS": "Energy", "ENKAI.IS": "Energy", "ODAS.IS": "Energy", "AKSEN.IS": "Energy", 
+        "ZOREN.IS": "Energy", "AYDEM.IS": "Energy", "BIOEN.IS": "Energy", "HUNER.IS": "Energy", 
+        "SMRTG.IS": "Energy", "EUPWR.IS": "Energy", "GWIND.IS": "Energy", "YEOTK.IS": "Energy", 
+        "ALFAS.IS": "Energy", "CWENE.IS": "Energy", "AKFYE.IS": "Energy", "ENJSA.IS": "Energy", 
+        "AENER.IS": "Energy",
+        "EKGYO.IS": "Real Estate (REIT)", "ISGYO.IS": "Real Estate (REIT)", "TRGYO.IS": "Real Estate (REIT)", 
+        "AKFGY.IS": "Real Estate (REIT)", "SNGYO.IS": "Real Estate (REIT)", "OZKGY.IS": "Real Estate (REIT)", 
+        "HLGYO.IS": "Real Estate (REIT)", "ASGYO.IS": "Real Estate (REIT)", "KLGYO.IS": "Real Estate (REIT)",
+        "THYAO.IS": "Transportation", "PGSUS.IS": "Transportation", "TAVHL.IS": "Transportation", "CLEBI.IS": "Transportation", 
+        "RYSAS.IS": "Transportation", "TLMAN.IS": "Transportation",
+        "BIMAS.IS": "Food & Retail", "MGROS.IS": "Food & Retail", "SOKM.IS": "Food & Retail", 
+        "ULKER.IS": "Food & Retail", "CCOLA.IS": "Food & Retail", "AEFES.IS": "Food & Retail", 
+        "TUKAS.IS": "Food & Retail", "TATGD.IS": "Food & Retail", "KRYST.IS": "Food & Retail", 
+        "PETUN.IS": "Food & Retail", "SUWEN.IS": "Food & Retail",
+        "KONTR.IS": "Technology & Software", "MIATK.IS": "Technology & Software", "ASELS.IS": "Technology & Software", 
+        "PENTA.IS": "Technology & Software", "LOGO.IS": "Technology & Software", "ARDYZ.IS": "Technology & Software", 
+        "VBTYZ.IS": "Technology & Software", "NETAS.IS": "Technology & Software", "KFEIN.IS": "Technology & Software", 
+        "SMART.IS": "Technology & Software", "SDTTR.IS": "Technology & Software", "REEDR.IS": "Technology & Software",
+        "ARCLK.IS": "Durable Consumer Goods", "VESBE.IS": "Durable Consumer Goods", "VESTL.IS": "Durable Consumer Goods",
+        "SISE.IS": "Glass & Ceramics", "KLMSN.IS": "Glass & Ceramics", "EGSER.IS": "Glass & Ceramics", "KUTPO.IS": "Glass & Ceramics",
+        "TCELL.IS": "Telecom", "TTKOM.IS": "Telecom",
+        "TURSG.IS": "Insurance", "AKGRT.IS": "Insurance", "ANHYT.IS": "Insurance", "ANSGR.IS": "Insurance"
     }
 
     col_input1, col_input2 = st.columns([3, 1])
     with col_input1:
-        searched_ticker = st.text_input("BIST Hisse Kodu Giriniz (Örnek: THYAO, EREGL, ASELS, YKBNK):", "THYAO", key="live_ticker_input")
+        searched_ticker = st.text_input("Enter BIST Stock Ticker (e.g. THYAO, EREGL, ASELS, YKBNK):", "THYAO", key="live_ticker_input")
     with col_input2:
-        backtest_years = st.selectbox("Geriye Dönük Veri Genişliği:", ["1 Yıl", "6 Ay", "2 Yıl"], index=0)
+        backtest_years = st.selectbox("Historical Data Range:", ["1 Year", "6 Months", "2 Years"], index=0)
 
     searched_ticker = searched_ticker.strip().upper()
     if not searched_ticker.endswith(".IS"):
@@ -590,14 +577,14 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
     else:
         full_ticker = searched_ticker
 
-    if st.button("Hisseyi Analiz Et", key="live_analiz_btn", type="primary"):
-        with st.spinner(f"{full_ticker} güncel verileri çekiliyor ve göstergeler türetiliyor..."):
+    if st.button("Analyze Stock", key="live_analiz_btn", type="primary"):
+        with st.spinner(f"Fetching live data and computing indicators for {full_ticker}..."):
             
-            period_map = {"1 Yıl": "1y", "6 Ay": "6mo", "2 Yıl": "2y"}
+            period_map = {"1 Year": "1y", "6 Months": "6mo", "2 Years": "2y"}
             raw_live_data = yf.download(full_ticker, period=period_map[backtest_years], interval="1d")
             
             if raw_live_data is None or raw_live_data.empty or len(raw_live_data) < 50:
-                st.error(f"Sistem Hatası: {full_ticker} için veri çekilemedi veya yetersiz gün sayısı.")
+                st.error(f"System Error: Could not fetch data for {full_ticker} or insufficient number of trading days.")
                 st.stop()
             
             raw_live_data = raw_live_data.copy()
@@ -666,7 +653,7 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
                     
                     return df
                 except Exception as e:
-                    st.error(f"Teknik gösterge hesaplama hatası: {e}")
+                    st.error(f"Technical indicator calculation error: {e}")
                     return None
 
             processed_live_data = compute_live_features(raw_live_data)
@@ -674,13 +661,13 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             if processed_live_data is None:
                 st.stop()
             
-            hisse_sektor = SECTOR_MAP.get(full_ticker, "Genel / Sektörsüz")
+            hisse_sektor = SECTOR_MAP.get(full_ticker, "General / No Sector")
             son_row = processed_live_data.dropna(subset=['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']).tail(1).iloc[0]
             curr_price = float(son_row['Close'])
             
-            st.markdown(f"#### Sektörel Uyum ve Referans Değerleri: [Sektör: {hisse_sektor}]")
+            st.markdown(f"#### Sectoral Alignment & Reference Values: [Sector: {hisse_sektor}]")
             
-            if hisse_sektor != "Genel / Sektörsüz":
+            if hisse_sektor != "General / No Sector":
                 sektor_tickers = [t for t, sec in SECTOR_MAP.items() if sec == hisse_sektor]
                 df_sektor = df[df['Ticker'].isin(sektor_tickers)].copy()
                 
@@ -691,11 +678,11 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
                     
                     col_sec1, col_sec2, col_sec3 = st.columns(3)
                     with col_sec1:
-                        st.metric("RSI Değeri (Canlı vs Sektör)", f"{son_row['RSI_14']:.1f}", f"Sektör Ort: {mean_rsi:.1f}", delta_color="off")
+                        st.metric("RSI Value (Live vs Sector)", f"{son_row['RSI_14']:.1f}", f"Sector Avg: {mean_rsi:.1f}", delta_color="off")
                     with col_sec2:
-                        st.metric("Volatilite (ATR) (Canlı vs Sektör)", f"{son_row['ATR_14']:.2f}", f"Sektör Ort: {mean_atr:.2f}", delta_color="off")
+                        st.metric("Volatility (ATR) (Live vs Sector)", f"{son_row['ATR_14']:.2f}", f"Sector Avg: {mean_atr:.2f}", delta_color="off")
                     with col_sec3:
-                        st.metric("Destek/Direnç Konumu (Depth)", f"%{son_row['Depth_Ratio']*100:.1f}", f"Sektör Ort: %{mean_depth*100:.1f}", delta_color="off")
+                        st.metric("Support/Resistance Position (Depth)", f"%{son_row['Depth_Ratio']*100:.1f}", f"Sector Avg: %{mean_depth*100:.1f}", delta_color="off")
             
             # Model Inference
             features_q = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
@@ -734,19 +721,19 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             if len(al_signals) > 5:
                 hist_win_rate = (al_signals['Close'].shift(-5) > al_signals['Close']).mean() * 100
             else:
-                hist_win_rate = 52.4
-
+                hist_win_rate = 50.0
+                
             if hist_win_rate < 48.0 and tahmin == 1:
-                tavsiye_text = "AL [YÜKSEK RİSK / UYUMSUZLUK]"
+                tavsiye_text = "BUY [HIGH RISK / LOW COMPLIANCE]"
                 tavsiye_color = "#ef4444"
             elif tahmin == 1:
-                tavsiye_text = "AL [OLUMLU YÖN KESTİRİMİ]"
+                tavsiye_text = "BUY [POSITIVE DIRECTIONAL FORECAST]"
                 tavsiye_color = "#10b981"
             else:
-                tavsiye_text = "BEKLE / NÖTR KONUM"
+                tavsiye_text = "HOLD / NEUTRAL POSITION"
                 tavsiye_color = "#94a3b8"
             
-            st.markdown("#### Canlı Fiyat Serisi ve Yapay Zeka AL Karar Noktaları")
+            st.markdown("#### Live Price Series & AI Buy Signals")
             grafik_df = processed_live_data.tail(90).copy()
             all_features_matrix = scaler_q.transform(grafik_df[features_q].values)
             grafik_df['AI_Signal'] = rf_model.predict(all_features_matrix)
@@ -754,21 +741,21 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             fig_candle = go.Figure()
             fig_candle.add_trace(go.Candlestick(
                 x=grafik_df['Date'], open=grafik_df['Open'], high=grafik_df['High'],
-                low=grafik_df['Low'], close=grafik_df['Close'], name='Fiyat Mum Grafik'
+                low=grafik_df['Low'], close=grafik_df['Close'], name='Price Candlestick'
             ))
-            fig_candle.add_trace(go.Scatter(x=grafik_df['Date'], y=grafik_df['BB_Upper'], line=dict(color='rgba(59,130,246,0.2)', width=1), name='Bollinger Üst', showlegend=False))
-            fig_candle.add_trace(go.Scatter(x=grafik_df['Date'], y=grafik_df['BB_Lower'], line=dict(color='rgba(59,130,246,0.2)', width=1), fill='tonexty', fillcolor='rgba(59,130,246,0.03)', name='Bollinger Alt', showlegend=False))
+            fig_candle.add_trace(go.Scatter(x=grafik_df['Date'], y=grafik_df['BB_Upper'], line=dict(color='rgba(59,130,246,0.2)', width=1), name='Bollinger Upper', showlegend=False))
+            fig_candle.add_trace(go.Scatter(x=grafik_df['Date'], y=grafik_df['BB_Lower'], line=dict(color='rgba(59,130,246,0.2)', width=1), fill='tonexty', fillcolor='rgba(59,130,246,0.03)', name='Bollinger Lower', showlegend=False))
             fig_candle.add_trace(go.Scatter(x=grafik_df['Date'], y=grafik_df['SMA_20'], line=dict(color='#3b82f6', width=1.5), name='SMA 20'))
             
             buys = grafik_df[grafik_df['AI_Signal'] == 1]
             fig_candle.add_trace(go.Scatter(
                 x=buys['Date'], y=buys['Low'] * 0.98, mode='markers',
                 marker=dict(symbol='triangle-up', size=10, color='#10b981', line=dict(width=1, color='rgba(0,0,0,0.5)')),
-                name='Yapay Zeka Karar Noktası (AL)'
+                name='AI Buy Signal Trigger'
             ))
             
             fig_candle.update_layout(
-                title=f"{full_ticker} - Son 90 İşlem Günü Bollinger / SMA Mum Grafik",
+                title=f"{full_ticker} - Last 90 Trading Days Bollinger & SMA Candlestick Chart",
                 template="plotly_dark",
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)",
@@ -780,51 +767,51 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             col_rec1, col_rec2, col_rec3 = st.columns(3)
             with col_rec1:
                 st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
-                st.markdown("<div class='metric-label'>KARAR MOTORU TAVSİYESİ</div>", unsafe_allow_html=True)
+                st.markdown("<div class='metric-label'>DECISION ENGINE RECOMMENDATION</div>", unsafe_allow_html=True)
                 st.markdown(f"<div style='color:{tavsiye_color};font-size:1.3rem;font-weight:bold;font-family:monospace;'>{tavsiye_text}</div>", unsafe_allow_html=True)
-                st.markdown(f"<span style='font-size:0.75rem; color:#94a3b8;'>Çıkarım Güveni: %{guven:.2f}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='font-size:0.75rem; color:#94a3b8;'>Inference Confidence: {guven:.2f}%</span>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
                 
             with col_rec2:
                 st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
-                st.markdown("<div class='metric-label'>RSI(50) MERKEZ ÇİZGİSİ KESİŞİM ONAYI</div>", unsafe_allow_html=True)
+                st.markdown("<div class='metric-label'>RSI(50) CENTERLINE CROSSOVER CONFIRMATION</div>", unsafe_allow_html=True)
                 rsi_val = son_row['RSI_14']
                 if rsi_val > 50:
-                    st.markdown("<div style='color:#10b981;font-size:1.3rem;font-weight:bold;font-family:monospace;'>POZİTİF (RSI > 50)</div>", unsafe_allow_html=True)
-                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Fiyat boğa bölgesinde. İndikatör alımı onaylamaktadır.</span>", unsafe_allow_html=True)
+                    st.markdown("<div style='color:#10b981;font-size:1.3rem;font-weight:bold;font-family:monospace;'>POSITIVE (RSI > 50)</div>", unsafe_allow_html=True)
+                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Price in bull territory. Crossover confirms buy.</span>", unsafe_allow_html=True)
                 else:
-                    st.markdown("<div style='color:#ef4444;font-size:1.3rem;font-weight:bold;font-family:monospace;'>NEGATİF (RSI < 50)</div>", unsafe_allow_html=True)
-                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Fiyat ayı bölgesinde. Alım pozisyonları için riskli aralık.</span>", unsafe_allow_html=True)
+                    st.markdown("<div style='color:#ef4444;font-size:1.3rem;font-weight:bold;font-family:monospace;'>NEGATIVE (RSI < 50)</div>", unsafe_allow_html=True)
+                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Price in bear territory. Risky for buy positions.</span>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
-
+ 
             with col_rec3:
                 st.markdown("<div class='terminal-card'>", unsafe_allow_html=True)
-                st.markdown("<div class='metric-label'>GEÇMİŞ STRATEJİ UYUM ANALİZİ</div>", unsafe_allow_html=True)
+                st.markdown("<div class='metric-label'>HISTORICAL STRATEGY COMPLIANCE</div>", unsafe_allow_html=True)
                 if hist_win_rate > 60.0:
-                    st.markdown(f"<div style='color:#10b981;font-size:1.3rem;font-weight:bold;font-family:monospace;'>GÜÇLÜ UYUM (%{hist_win_rate:.1f})</div>", unsafe_allow_html=True)
-                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Hisse geçmiş model kararlarına yüksek oranda uyum sağlamıştır.</span>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='color:#10b981;font-size:1.3rem;font-weight:bold;font-family:monospace;'>HIGH COMPLIANCE ({hist_win_rate:.1f}%)</div>", unsafe_allow_html=True)
+                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>High historical alignment with AI model decisions.</span>", unsafe_allow_html=True)
                 elif hist_win_rate >= 48.0:
-                    st.markdown(f"<div style='color:#3b82f6;font-size:1.3rem;font-weight:bold;font-family:monospace;'>DENGELİ UYUM (%{hist_win_rate:.1f})</div>", unsafe_allow_html=True)
-                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Hisse sinyal tepkileri dengeli ve kararlı durumdadır.</span>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='color:#3b82f6;font-size:1.3rem;font-weight:bold;font-family:monospace;'>MODERATE COMPLIANCE ({hist_win_rate:.1f}%)</div>", unsafe_allow_html=True)
+                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Balanced signal response in past periods.</span>", unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<div style='color:#ef4444;font-size:1.3rem;font-weight:bold;font-family:monospace;'>UYUMSUZ (%{hist_win_rate:.1f})</div>", unsafe_allow_html=True)
-                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Hissenin geçmiş model uyumu düşüktür. Sinyaller risk taşımaktadır.</span>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='color:#ef4444;font-size:1.3rem;font-weight:bold;font-family:monospace;'>LOW COMPLIANCE ({hist_win_rate:.1f}%)</div>", unsafe_allow_html=True)
+                    st.markdown("<span style='font-size:0.75rem; color:#94a3b8;'>Low historical alignment. Signals carry higher risk.</span>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
-
-            with st.expander("Giriş Parametresi Teknik İndikatör Ayrıntıları", expanded=True):
+ 
+            with st.expander("Input Parameter Technical Indicator Details", expanded=True):
                 st.markdown(f"""
-                | Teknik Gösterge | Canlı Değeri | Durum Değerlendirmesi |
+                | Technical Indicator | Live Value | Status / Evaluation |
                 |-----------------|--------------|-----------------------|
-                | **RSI_14** | {son_row['RSI_14']:.2f} | {'Aşırı Alım' if son_row['RSI_14']>70 else 'Aşırı Satım' if son_row['RSI_14']<30 else 'Kararlı Momentum'} |
-                | **MACD** | {son_row['MACD']:.4f} | {'Pozitif Trend Kesişimi' if son_row['MACD']>0 else 'Negatif Trend Kesişimi'} |
-                | **Stoch_K** | {son_row['Stoch_K']:.2f} | {'Aşırı Alım Bölgesi' if son_row['Stoch_K']>80 else 'Aşırı Satım Bölgesi' if son_row['Stoch_K']<20 else 'Nötr'} |
-                | **ATR_14 (Volatilite)** | {son_row['ATR_14']:.2f} | Günlük ortalama dalgalanma aralığı (TL) |
-                | **Expert Signal** | {int(son_row['Expert_Signal'])} | {'Uzman Sistem Al Teyidi' if son_row['Expert_Signal']==1 else 'Uzman Sistem Sat Teyidi' if son_row['Expert_Signal']==-1 else 'Referans Dışı'} |
-                | **Neckline Slope** | {son_row['Neckline_Slope']:.4f} | {'Yukarı Eğilimli' if son_row['Neckline_Slope']>0 else 'Aşağı Eğilimli'} |
+                | **RSI_14** | {son_row['RSI_14']:.2f} | {'Overbought' if son_row['RSI_14']>70 else 'Oversold' if son_row['RSI_14']<30 else 'Stable Momentum'} |
+                | **MACD** | {son_row['MACD']:.4f} | {'Positive Trend Crossover' if son_row['MACD']>0 else 'Negative Trend Crossover'} |
+                | **Stoch_K** | {son_row['Stoch_K']:.2f} | {'Overbought Zone' if son_row['Stoch_K']>80 else 'Oversold Zone' if son_row['Stoch_K']<20 else 'Neutral'} |
+                | **ATR_14 (Volatility)** | {son_row['ATR_14']:.2f} | Daily average fluctuation range (TRY) |
+                | **Expert Signal** | {int(son_row['Expert_Signal'])} | {'Expert System Buy Confirm' if son_row['Expert_Signal']==1 else 'Expert System Sell Confirm' if son_row['Expert_Signal']==-1 else 'No Confirmation'} |
+                | **Neckline Slope** | {son_row['Neckline_Slope']:.4f} | {'Upward Slanted' if son_row['Neckline_Slope']>0 else 'Downward Slanted'} |
                 """)
-
+ 
             # 6. Hisseye Özel Canlı Backtest Simülatörü
-            st.markdown("#### Hisse Bağımsız Yapay Zeka Strateji Backtest Performansı")
+            st.markdown("#### Single Stock AI Strategy Backtest Performance")
             backtest_df['Daily_Return'] = backtest_df['Close'].pct_change()
             backtest_df['AI_Return'] = backtest_df['AI_Signal'].shift(1) * backtest_df['Daily_Return']
             
@@ -832,12 +819,12 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             backtest_df['BH_Cumulative'] = 100000 * (1 + backtest_df['Daily_Return'].fillna(0)).cumprod()
             
             fig_bt = go.Figure()
-            fig_bt.add_trace(go.Scatter(x=backtest_df['Date'], y=backtest_df['AI_Cumulative'], mode='lines', name='BorsaNeuron AI Portföyü', line=dict(color='#10b981', width=2.5)))
-            fig_bt.add_trace(go.Scatter(x=backtest_df['Date'], y=backtest_df['BH_Cumulative'], mode='lines', name='Al ve Tut (Buy & Hold)', line=dict(color='#ef4444', width=1.5, dash='dash')))
+            fig_bt.add_trace(go.Scatter(x=backtest_df['Date'], y=backtest_df['AI_Cumulative'], mode='lines', name='BorsaNeuron AI Portfolio', line=dict(color='#10b981', width=2.5)))
+            fig_bt.add_trace(go.Scatter(x=backtest_df['Date'], y=backtest_df['BH_Cumulative'], mode='lines', name='Buy & Hold', line=dict(color='#ef4444', width=1.5, dash='dash')))
             
             fig_bt.update_layout(
-                title=f"{full_ticker} - Tarihsel AI Strateji Gelişimi vs Al & Tut Simülasyonu",
-                yaxis_title="Sermaye (TL)",
+                title=f"{full_ticker} - Historical AI Strategy vs Buy & Hold Simulation",
+                yaxis_title="Capital (TRY)",
                 template="plotly_dark",
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)",
@@ -852,55 +839,52 @@ elif page == "Canlı Hisse Sorgulama & Çıkarım":
             
             col_bt1, col_bt2, col_bt3 = st.columns(3)
             with col_bt1:
-                st.metric("Yapay Zeka Portföy Değeri", f"{final_ai:,.2f} ₺", f"%{profit_ai:.1f} Net Kazanç")
+                st.metric("AI Portfolio Capital", f"{final_ai:,.2f} ₺", f"{profit_ai:.1f}% Net Gain")
             with col_bt2:
-                st.metric("Al ve Tut Endeks Değeri", f"{final_bh:,.2f} ₺", f"%{profit_bh:.1f} Net Kazanç")
+                st.metric("Buy & Hold Capital", f"{final_bh:,.2f} ₺", f"{profit_bh:.1f}% Net Gain")
             with col_bt3:
                 al_sinyalleri_sayisi = (backtest_df['AI_Signal'] == 1).sum()
-                st.metric("Üretilen Toplam AL Kararı", f"{al_sinyalleri_sayisi} Gün Sinyali")
-
-            with st.expander("Karar Gerekçeleri Raporu", expanded=True):
+                st.metric("Total Buy Signals Triggered", f"{al_sinyalleri_sayisi} Daily Signals")
+ 
+            with st.expander("Decision Rationale Report", expanded=True):
                 reasons = []
                 if son_row['RSI_14'] < 30:
-                    reasons.append("RSI 30 değerinin altında: Aşırı satım bölgesi, dönüş potansiyeli güçlü.")
+                    reasons.append("RSI is below 30: Oversold zone, strong potential reversal.")
                 elif son_row['RSI_14'] > 70:
-                    reasons.append("RSI 70 değerinin üstünde: Aşırı alım bölgesi, kâr satışı riski yüksek.")
+                    reasons.append("RSI is above 70: Overbought zone, high profit-taking risk.")
                 else:
-                    reasons.append(f"RSI momentumu nötr bölgede ({son_row['RSI_14']:.1f}).")
+                    reasons.append(f"RSI momentum is in neutral zone ({son_row['RSI_14']:.1f}).")
                 
                 if son_row['MACD'] > 0:
-                    reasons.append("MACD göstergesi pozitif bölgede: Fiyat momentumu yukarı yönlü koruyor.")
+                    reasons.append("MACD is positive: Price momentum is maintaining upward direction.")
                 else:
-                    reasons.append("MACD göstergesi negatif bölgede: Kısa vadeli düzeltme eğilimi hakim.")
+                    reasons.append("MACD is negative: Short-term correction trend dominates.")
                 
                 if son_row['Stoch_K'] < 20:
-                    reasons.append("Stochastic 20 referansının altında: Aşırı satım sınırından dönüş aşamasında.")
+                    reasons.append("Stochastic K is below 20: Reversing from oversold boundary.")
                 elif son_row['Stoch_K'] > 80:
-                    reasons.append("Stochastic 80 referansının üstünde: Aşırı alım sınırında konsolidasyon riski.")
+                    reasons.append("Stochastic K is above 80: Consolidation risk at overbought boundary.")
                 
                 if son_row['Expert_Signal'] == 1:
-                    reasons.append("Uzman karar teyidi aktif: Teknik yapı ve indikatör matrisi alımı destekliyor.")
+                    reasons.append("Expert signal confirmation active: Technical structure and indicators support buy decision.")
                 
-                reasons.append(f"Model Tahmin Matrisi Güven Puanı: %{guven:.2f} (Yükseliş Olasılığı: %{proba[1]*100:.1f} | Düşüş Olasılığı: %{proba[0]*100:.1f})")
+                reasons.append(f"Model confidence score: {guven:.2f}% (Bullish probability: {proba[1]*100:.1f}% | Bearish probability: {proba[0]*100:.1f}%)")
                 
                 for r in reasons:
                     st.markdown(f"- {r}")
 
-# ==========================================
-# MODÜL 7: PORTFÖY SİMÜLASYONU VE BACKTEST
-# ==========================================
-elif page == "Portföy Simülasyonu ve Backtest":
-    st.markdown("### Tarihsel Portföy Büyümesi ve Out-of-Sample Simülasyonu")
+elif page == "Portfolio Backtesting & Simulation":
+    st.markdown("### Historical Portfolio Growth & Out-of-Sample Simulation")
     
-    with st.expander("Kronolojik Backtest Modelleme Kuralları", expanded=True):
+    with st.expander("Chronological Backtesting & Modeling Rules", expanded=True):
         st.markdown('''
-        * **Veri Bölümleme:** Karar sızıntısını (look-ahead bias) engellemek amacıyla verilerin ilk %80'i (2019-2023) eğitim kümesi, son %20'si (2023-2024) ise modelin hiç görmediği out-of-sample test kümesi olarak ayrılmıştır.
-        * **Karar Mekanizması:** Modelin `Target_T5` yön kestiriminin `1` olduğu günlerde ilgili hisseye AL emri gönderilir ve portföye eklenir. `0` olduğu günlerde beklemede kalınır.
-        * **İşlem Maliyetleri ve Gerçekçilik:** Sinyallerin doğruluğu test edilirken slippage, işlem komisyonu ve likidite kısıtları nedeniyle başarılı işlemlerden elde edilen kazancın %30'u yakalanabilir, başarısız tahminlerdeki kaybın ise %50'si portföye doğrudan yansıtılır.
+        * **Data Splitting:** To prevent look-ahead bias, the first 80% of chronological data (2019–2025) is used as the training set, while the final 20% (2025–2026) is reserved as the unseen out-of-sample test set.
+        * **Decision Engine:** Buy orders are generated and added to the portfolio on days when the model's `Target_T5` direction forecast is `1`. On days with a `0` forecast, the portfolio holds cash.
+        * **Transaction Costs & Slippage:** To simulate realistic trading frictions, only 30% of target gains are captured from successful trades, while 50% of the maximum drawdowns are directly applied as losses.
         ''')
         
-    if st.button("Out-of-Sample Backtest Simülasyonunu Çalıştır", key="backtest_btn", type="primary"):
-        with st.spinner("Tarihsel portföy büyüme eğrisi simüle ediliyor..."):
+    if st.button("Run Out-of-Sample Backtest", key="backtest_btn", type="primary"):
+        with st.spinner("Simulating historical portfolio growth curve..."):
             features_bt = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
             df_bt = df.dropna(subset=features_bt + ['Target_T5', 'Max_Gain_15D', 'Max_Drawdown_15D']).copy()
             df_bt['Date'] = pd.to_datetime(df_bt['Date'])
@@ -929,11 +913,11 @@ elif page == "Portföy Simülasyonu ve Backtest":
             daily_net['Buy_And_Hold'] = 100000 * (1 + (market_return / 100)).cumprod()
             
             fig4 = go.Figure()
-            fig4.add_trace(go.Scatter(x=daily_net.index, y=daily_net['Portfoy_Degeri'], mode='lines', name='BorsaNeuron AI Karar Portföyü', line=dict(color='#10b981', width=2.5)))
-            fig4.add_trace(go.Scatter(x=daily_net.index, y=daily_net['Buy_And_Hold'], mode='lines', name='Piyasa Al & Tut (Buy & Hold)', line=dict(color='#ef4444', width=1.5, dash='dash')))
+            fig4.add_trace(go.Scatter(x=daily_net.index, y=daily_net['Portfoy_Degeri'], mode='lines', name='BorsaNeuron AI Decision Portfolio', line=dict(color='#10b981', width=2.5)))
+            fig4.add_trace(go.Scatter(x=daily_net.index, y=daily_net['Buy_And_Hold'], mode='lines', name='Market Buy & Hold Index', line=dict(color='#ef4444', width=1.5, dash='dash')))
             fig4.update_layout(
-                title="BorsaNeuron Yapay Zeka Portföy Gelişimi (100.000 TL Başlangıç Sermayesi)",
-                yaxis_title="Sermaye Boyutu (TL)",
+                title="BorsaNeuron AI Portfolio Growth (Starting Capital: 100,000 TRY)",
+                yaxis_title="Portfolio Capital (TRY)",
                 template="plotly_dark",
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)"
@@ -945,30 +929,32 @@ elif page == "Portföy Simülasyonu ve Backtest":
             win_rate = (test_df[test_df['AI_Signal'] == 1]['Target_T5'].mean()) * 100
             
             col1, col2, col3 = st.columns(3)
-            col1.metric("Başlangıç Sermayesi", "100,000 ₺")
-            col2.metric("Nihai Portföy Sermayesi", f"{final_capital:,.2f} ₺", f"%{net_profit:.2f} Net Kazanç")
-            col3.metric("Strateji Win Rate Oranı", f"%{win_rate:.1f}")
+            col1.metric("Starting Capital", "100,000 TRY")
+            col2.metric("Final Portfolio Capital", f"{final_capital:,.2f} TRY", f"{net_profit:.2f}% Net Gain")
+            col3.metric("Strategy Win Rate", f"{win_rate:.1f}%")
             
-            with st.expander("Kronolojik Son 20 Sistem Kararı Detay Logu", expanded=False):
+            with st.expander("Chronological Log of Last 20 System Decisions", expanded=False):
                 al_sinyalleri = test_df[test_df['AI_Signal'] == 1][['Date','Ticker','Close','RSI_14','MACD','Target_T5','Max_Gain_15D','Max_Drawdown_15D']].copy()
-                al_sinyalleri['Sonuc'] = al_sinyalleri['Target_T5'].map({1: 'Yükseldi (Başarılı)', 0: 'Düştü (Başarısız)'})
-                al_sinyalleri['Kazanc/Zarar'] = al_sinyalleri.apply(
-                    lambda r: f"+%{r['Max_Gain_15D']*0.3:.1f}" if r['Target_T5']==1 else f"-%{abs(r['Max_Drawdown_15D']*0.5):.1f}", axis=1)
-                st.dataframe(al_sinyalleri[['Date','Ticker','Close','RSI_14','MACD','Sonuc','Kazanc/Zarar']].tail(20), use_container_width=True)
+                al_sinyalleri['Result'] = al_sinyalleri['Target_T5'].map({1: 'Increased (Success)', 0: 'Decreased (Fail)'})
+                al_sinyalleri['Gain/Loss'] = al_sinyalleri.apply(
+                    lambda r: f"+{r['Max_Gain_15D']*0.3:.1f}%" if r['Target_T5']==1 else f"-{abs(r['Max_Drawdown_15D']*0.5):.1f}%", axis=1)
+                st.dataframe(al_sinyalleri[['Date','Ticker','Close','RSI_14','MACD','Result','Gain/Loss']].tail(20), use_container_width=True)
 
 # ==========================================
-# MODÜL 8: OTOMATİK FORMASYON TARAYICI
+# MODULE 8: AUTOMATED PATTERN SCANNER
 # ==========================================
-elif page == "Otomatik Formasyon Tarayıcı":
-    st.markdown("### Teknik Grafik Formasyonları Otomatik Tarama Terminali")
-    st.markdown("Veri setindeki tüm aktif BIST hisselerinde saptanan klasik grafik formasyonlarının ve kırılım yönlerinin taranması.")
+elif page == "Automated Pattern Scanner":
+    st.markdown("### Technical Chart Pattern Automated Scanning Terminal")
+    st.markdown("Scanning of classic chart patterns and breakout directions detected across all active BIST stocks in the dataset.")
     
-    with st.expander("Teknik Formasyon Şablon Tanımları", expanded=True):
+    with st.expander("Technical Pattern Definitions", expanded=True):
         st.markdown('''
-        * **TOBO (Ters Omuz-Baş-Omuz):** Güçlü yükseliş dönüş yapısıdır. Boyun çizgisi kırılımı yükselişi tetikler.
-        * **OBO (Omuz-Baş-Omuz):** Güçlü düşüş dönüş yapısıdır. Boyun çizgisi aşağı yönlü kırıldığında risk artar.
-        * **Cup & Handle (Fincan-Kulp):** Yükselen trend devam formasyonudur. Kulp bölgesinin yukarı geçilmesiyle hareket ivme kazanır.
-        * **Flag (Bayrak/Flama):** Hızlı fiyat hareketi sonrası oluşan dar bantlı konsolidasyon alanlarıdır. Sıkışma yönünde kırılım beklenir.
+        * **TOBO (Inverted Head and Shoulders):** Strong bullish reversal structure. A breakout above the neckline triggers a rise.
+        * **OBO (Head and Shoulders):** Strong bearish reversal structure. Risk increases when the neckline is broken downwards.
+        * **Cup & Handle:** Bullish trend continuation pattern. The movement gains momentum once the handle region is broken upwards.
+        * **Flag:** Narrow consolidation ranges forming after rapid price movements. A breakout in the trend direction is expected.
+        * **Double Bottom:** Bullish reversal pattern consisting of two consecutive lows around the same support level. A breakout above the intermediate peak confirms the pattern.
+        * **Double Top:** Bearish reversal pattern consisting of two consecutive peaks around the same resistance level. A breakout below the intermediate trough confirms the pattern.
         ''')
         
     if 'Pattern_Type' in df.columns:
@@ -978,23 +964,34 @@ elif page == "Otomatik Formasyon Tarayıcı":
         df_recent = df_scan[df_scan['Date'] >= son_tarih - pd.Timedelta(days=30)]
         df_patterns = df_recent[df_recent['Pattern_Type'] != 'Yok'].copy()
         
+        # Map internal pattern names to clean English presentation names
+        pattern_name_map = {
+            'TOBO': 'Inverted Head & Shoulders (TOBO)',
+            'OBO': 'Head & Shoulders (OBO)',
+            'Cup_Handle': 'Cup & Handle',
+            'Flag': 'Flag',
+            'Double_Bottom': 'Double Bottom',
+            'Double_Top': 'Double Top'
+        }
+        df_patterns['Pattern_Type'] = df_patterns['Pattern_Type'].map(pattern_name_map).fillna(df_patterns['Pattern_Type'])
+        
         if df_patterns.empty:
-            st.info("Son 30 gün içerisinde BIST genelinde aktif bir geometrik grafik formasyonu tespit edilemedi.")
+            st.info("No active geometric chart patterns were detected across BIST in the last 30 days.")
         else:
             pattern_counts = df_patterns['Pattern_Type'].value_counts()
             
             col_p1, col_p2, col_p3, col_p4 = st.columns(4)
-            col_p1.metric("Toplam Tespit Edilen Formasyon", len(df_patterns))
-            col_p2.metric("Formasyon Saptanan Ticker Sayısı", df_patterns['Ticker'].nunique())
-            col_p3.metric("Uyumlu AL Sinyali", int((df_patterns['Expert_Signal'] == 1).sum()))
-            col_p4.metric("Uyumlu SAT Sinyali", int((df_patterns['Expert_Signal'] == -1).sum()))
+            col_p1.metric("Total Patterns Detected", len(df_patterns))
+            col_p2.metric("Unique Tickers Scanned", df_patterns['Ticker'].nunique())
+            col_p3.metric("Matching BUY Signals", int((df_patterns['Expert_Signal'] == 1).sum()))
+            col_p4.metric("Matching SELL Signals", int((df_patterns['Expert_Signal'] == -1).sum()))
             
             fig_pat = px.bar(
                 x=pattern_counts.index, y=pattern_counts.values,
-                title="Saptanan Geometrik Grafik Formasyon Dağılımları (Son 30 Gün)",
-                labels={'x': 'Formasyon Tipi', 'y': 'Tespit Adedi'},
+                title="Detected Geometric Chart Pattern Distribution (Last 30 Days)",
+                labels={'x': 'Pattern Type', 'y': 'Detection Count'},
                 color=pattern_counts.index,
-                color_discrete_sequence=['#3b82f6', '#ef4444', '#10b981', '#fbbf24']
+                color_discrete_sequence=['#3b82f6', '#ef4444', '#10b981', '#fbbf24', '#8b5cf6', '#ec4899']
             )
             fig_pat.update_layout(
                 template="plotly_dark", 
@@ -1004,39 +1001,39 @@ elif page == "Otomatik Formasyon Tarayıcı":
             )
             st.plotly_chart(fig_pat, use_container_width=True)
             
-            st.markdown("#### Saptanan Formasyonlar Detay Matrisi (Son 50 Kayıt)")
+            st.markdown("#### Detected Patterns Detail Matrix (Last 50 Records)")
             display_cols = ['Date', 'Ticker', 'Close', 'Pattern_Type', 'Expert_Signal', 'RSI_14', 'MACD', 'Depth_Ratio', 'Neckline_Slope']
             available_cols = [c for c in display_cols if c in df_patterns.columns]
             df_show = df_patterns[available_cols].sort_values('Date', ascending=False).head(50)
             
-            sinyal_map = {1: 'AL (Teyitli)', -1: 'SAT (Riskli)', 0: 'NOTR (Referans Dışı)'}
+            sinyal_map = {1: 'BUY (Confirmed)', -1: 'SELL (Risky)', 0: 'NEUTRAL (Out of Reference)'}
             if 'Expert_Signal' in df_show.columns:
-                df_show['Sinyal Yönü'] = df_show['Expert_Signal'].map(sinyal_map)
+                df_show['Signal Direction'] = df_show['Expert_Signal'].map(sinyal_map)
                 
             st.dataframe(df_show, use_container_width=True)
             
-            st.markdown("#### Formasyon Türlerine Göre Hisse Dağılımları")
+            st.markdown("#### Stock Distributions by Pattern Type")
             for pat_type in pattern_counts.index:
-                with st.expander(f"{pat_type} Formasyonu Oluşan Hisseler ({pattern_counts[pat_type]} Ticker)"):
+                with st.expander(f"Stocks with {pat_type} Pattern ({pattern_counts[pat_type]} Tickers)"):
                     pat_df = df_patterns[df_patterns['Pattern_Type'] == pat_type]
                     tickers_list = pat_df['Ticker'].unique()
-                    st.write(f"**Hisseler:** {', '.join([t.replace('.IS','') for t in tickers_list])}")
+                    st.write(f"**Stocks:** {', '.join([t.replace('.IS','') for t in tickers_list])}")
                     
                     avg_rsi = pat_df['RSI_14'].mean()
                     avg_depth = pat_df['Depth_Ratio'].mean()
                     col_a, col_b = st.columns(2)
-                    col_a.metric("Ortalama RSI Değeri", f"{avg_rsi:.2f}")
-                    col_b.metric("Ortalama Destek Oranı (Depth)", f"{avg_depth:.3f}")
+                    col_a.metric("Average RSI", f"{avg_rsi:.2f}")
+                    col_b.metric("Average Depth Ratio", f"{avg_depth:.3f}")
     else:
-        st.warning("Veritabanı yapılandırma hatası: 'Pattern_Type' özniteliği veri tablosunda bulunamadı.")
+        st.warning("Database configuration error: 'Pattern_Type' column not found in data table.")
         
     st.markdown("---")
-    st.markdown("#### Canlı Teknik Tarama Paneli")
-    st.markdown("Belirttiğiniz hisselerin son durumlarını canlı teknik tarama algoritmasıyla kontrol edin.")
+    st.markdown("#### Live Technical Scanner Panel")
+    st.markdown("Check the latest status of specified stocks using the live technical scanning algorithm.")
     
-    scan_tickers = st.text_input("Taranacak BIST Kodlarını Giriniz (Virgül ile Ayırın):", "THYAO, GARAN, EREGL, ASELS, FROTO", key="scan_input")
+    scan_tickers = st.text_input("Enter BIST Codes to Scan (Separated by Commas):", "THYAO, GARAN, EREGL, ASELS, FROTO", key="scan_input")
     
-    if st.button("Canlı Taramayı Başlat", key="scan_btn", type="primary"):
+    if st.button("Start Live Scan", key="scan_btn", type="primary"):
         tickers_to_scan = [t.strip().upper() for t in scan_tickers.split(',')]
         tickers_to_scan = [t + '.IS' if not t.endswith('.IS') else t for t in tickers_to_scan]
         
@@ -1061,17 +1058,17 @@ elif page == "Otomatik Formasyon Tarayıcı":
                     sma20 = float(pd.Series(close).rolling(20).mean().iloc[-1])
                     sma50 = float(pd.Series(close).rolling(50).mean().iloc[-1])
                     
-                    trend = 'Yükseliş Trendi' if last_close > sma50 else 'Düşüş Trendi'
-                    rsi_durum = 'Aşırı Alım' if rsi_val > 70 else 'Aşırı Satım' if rsi_val < 30 else 'Normal'
+                    trend = 'Uptrend' if last_close > sma50 else 'Downtrend'
+                    rsi_durum = 'Overbought' if rsi_val > 70 else 'Oversold' if rsi_val < 30 else 'Normal'
                     
                     scan_results.append({
-                        'Hisse': tick.replace('.IS', ''),
-                        'Son Fiyat': f'{last_close:.2f}',
-                        'Canlı RSI_14': f'{rsi_val:.2f}',
-                        'RSI Durumu': rsi_durum,
-                        'SMA_20 Seviyesi': f'{sma20:.2f}',
-                        'SMA_50 Seviyesi': f'{sma50:.2f}',
-                        'Trend Konumu': trend
+                        'Stock': tick.replace('.IS', ''),
+                        'Last Price': f'{last_close:.2f}',
+                        'Live RSI (14)': f'{rsi_val:.2f}',
+                        'RSI Status': rsi_durum,
+                        'SMA (20) Level': f'{sma20:.2f}',
+                        'SMA (50) Level': f'{sma50:.2f}',
+                        'Trend Position': trend
                     })
             except Exception as e:
                 pass
@@ -1081,10 +1078,10 @@ elif page == "Otomatik Formasyon Tarayıcı":
         if scan_results:
             st.dataframe(pd.DataFrame(scan_results), use_container_width=True)
         else:
-            st.warning("Veri Bağlantı Hatası: Belirtilen hisselere ait fiyat verileri yFinance üzerinden çekilemedi.")
+            st.warning("Data Connection Error: Price data for the specified stocks could not be retrieved from yFinance.")
 
 st.markdown("""
 <div class='footer-text'>
-    YEDİTEPE ÜNİVERSİTESİ | BORSANEURON ALGORİTMİK TİCARET VE YAPAY ZEKA MEZUNİYET PROJESİ
+    YEDİTEPE UNIVERSITY | BORSANEURON ALGORITHMIC TRADING AND ARTIFICIAL INTELLIGENCE GRADUATION PROJECT
 </div>
 """, unsafe_allow_html=True)

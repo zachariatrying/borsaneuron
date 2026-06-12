@@ -34,7 +34,9 @@ class Analyzer:
                 'tobo': True,
                 'flag': True,
                 'cup': True,
-                'breakout': True
+                'breakout': True,
+                'double_bottom': True,
+                'double_top': True
             }
         }
 
@@ -210,33 +212,33 @@ class Analyzer:
         
         # 0. Stop Hit?
         if price < stop:
-            return f"❌ STOP PATLADI. Fiyat stop seviyesinin altında ({stop:.2f}). Formasyon geçersiz."
+            return f"❌ STOP HIT. Price is below stop level ({stop:.2f}). Pattern invalidated."
             
         # 1. Target Hit?
         if price >= target:
-            return f"✅ HEDEF GÖRÜLDÜ. Fiyat hedef seviyesine ulaştı ({target:.2f}). Kar satışı değerlendirilebilir."
+            return f"✅ TARGET HIT. Price reached target level ({target:.2f}). Consider taking profit."
 
         # 2. Status Logic
         if status == "unconfirmed":
             dist = (entry - price) / price
             if 0 < dist < 0.03:
-                advice = f"🚨 KIRILIM YAKIN. {entry:.2f} üzeri kapanış beklenmeli. Yakın takip."
+                advice = f"🚨 BREAKOUT NEAR. Wait for close above {entry:.2f}. Monitor closely."
             else:
-                advice = f"⏳ OLUŞUYOR. {entry:.2f} seviyesinin kırılması bekleniyor."
+                advice = f"⏳ FORMING. Waiting for breakout above {entry:.2f}."
                 
         elif status == "confirmed":
             # Check for retest
             dist_retest = abs(price - entry) / entry
             
             if dist_retest < 0.03:
-                advice = f"🛒 ALIM FIRSATI (Retest). Fiyat kırılım seviyesine ({entry:.2f}) yakın. Stop: {stop:.2f}"
+                advice = f"🛒 BUY OPPORTUNITY (Retest). Price is near breakout level ({entry:.2f}). Stop: {stop:.2f}"
             else:
                 # In Profit?
                 if price > entry:
                     gain = (price - entry) / entry
-                    advice = f"📈 KARDA. Mevcut Getiri: %{gain*100:.1f}. Hedef: {target:.2f}. Stop yükseltilebilir."
+                    advice = f"📈 IN PROFIT. Current Return: {gain*100:.1f}%. Target: {target:.2f}. Consider trailing stop."
                 else:
-                    return f"⚠️ RİSKLİ. Onaylanmış ama fiyat girişin altında. {entry:.2f} üzerine atamazsa stop olunmalı."
+                    return f"⚠️ RISKY. Confirmed but price is below entry. Exit if price cannot recover above {entry:.2f}."
          
         return advice
 
@@ -405,6 +407,12 @@ class Analyzer:
         if self.config['enabled_patterns']['cup']:
              all_patterns.extend(self.detect_cup_zigzag(df, zz_points, timeframe))
              
+        if self.config['enabled_patterns'].get('double_bottom', True):
+             all_patterns.extend(self.detect_double_bottom_pattern(df, zz_points, timeframe))
+             
+        if self.config['enabled_patterns'].get('double_top', True):
+             all_patterns.extend(self.detect_double_top_pattern(df, zz_points, timeframe))
+             
         # Add Rocket
         all_patterns.extend(self.detect_high_tight_flag(df))
              
@@ -432,14 +440,14 @@ class Analyzer:
             # 1. Head Volume < LS Volume (Drying up)
             if v_head < v_ls:
                 score += 25
-                reasons.append("Hacim Başta düştü")
+                reasons.append("Volume decreased at Head")
             else:
                 score -= 10
                 
             # 2. RS Volume < LS Volume (Supply exhausted)
             if v_rs < v_ls:
                 score += 25
-                reasons.append("Sağ Omuz hacimsiz")
+                reasons.append("Low volume at Right Shoulder")
                 
             return score, ", ".join(reasons)
         except:
@@ -605,9 +613,9 @@ class Analyzer:
             if status == "confirmed":
                 try:
                     # Check if volume spiked recently
-                    if df['Volume'].iloc[-1] > df['Vol_SMA_20'].iloc[-1] * 1.5:
-                         quality_score += 15
-                         vol_reason += ", Kırılım Hacimli 💥"
+                     if df['Volume'].iloc[-1] > df['Vol_SMA_20'].iloc[-1] * 1.5:
+                          quality_score += 15
+                          vol_reason += ", High Volume Breakout 💥"
                 except: pass
 
             # Filter Weak Patterns
@@ -619,10 +627,10 @@ class Analyzer:
             # Stop is slightly below RS Low
             stop = rs_val * 0.99
             
-            quality_text = "Normal"
-            if quality_score > 75: quality_text = "Yıldızlı ⭐ (Elite)"
-            elif quality_score > 60: quality_text = "Güçlü"
-            elif quality_score < 45: quality_text = "Zayıf"
+            quality_text = "Moderate"
+            if quality_score > 75: quality_text = "Elite ⭐"
+            elif quality_score > 60: quality_text = "Strong"
+            elif quality_score < 45: quality_text = "Weak"
 
             # Dynamic Strategy
             strategy = self.get_strategy_text(status, curr_price, neckline_at_curr, target, stop, "TOBO")
@@ -868,6 +876,146 @@ class Analyzer:
             
         return patterns
 
+    def detect_double_bottom_pattern(self, df, zz_points, timeframe="Günlük"):
+        patterns = []
+        if len(zz_points) < 3: return patterns
+        cfg = self.config
+        close = df['Close'].values
+        dates = df['Date'].values
+        curr_idx = len(close) - 1
+        
+        for i in range(len(zz_points)-1, 1, -1):
+            p3, p2, p1 = zz_points[i], zz_points[i-1], zz_points[i-2]
+            if not (p3['type'] == 'low' and p2['type'] == 'high' and p1['type'] == 'low'):
+                continue
+                
+            if curr_idx - p3['idx'] > 10: continue
+            
+            p_diff = abs(p1['price'] - p3['price']) / max(p1['price'], p3['price'])
+            if p_diff > 0.03: continue
+            
+            if p2['price'] < max(p1['price'], p3['price']) * 1.02: continue
+            
+            depth = p2['price'] - min(p1['price'], p3['price'])
+            curr_price = close[-1]
+            status = "unconfirmed"
+            if curr_price > p2['price']:
+                status = "confirmed"
+                
+            entry = p2['price']
+            target = p2['price'] + depth
+            stop = min(p1['price'], p3['price'])
+            
+            quality_text = "Good"
+            quality_score = 75
+            strategy = self.get_strategy_text(status, curr_price, entry, target, stop, "Double Bottom")
+            vade = self.calculate_smart_vade(p3['idx'] - p1['idx'], 60, timeframe)
+            
+            patterns.append({
+                'name': 'Double Bottom',
+                'price': float(curr_price),
+                'entry': float(entry),
+                'target': float(target),
+                'stop': float(stop),
+                'status': status,
+                'quality': quality_text,
+                'strategy': strategy,
+                'type': 'double_bottom',
+                'score': quality_score,
+                'date_range': f"{pd.to_datetime(dates[p1['idx']]).strftime('%d.%m')}-{pd.to_datetime(dates[p3['idx']]).strftime('%d.%m')}",
+                'vade': vade,
+                "Points": {
+                    "p_start_idx": int(p1['idx']),
+                    "p_start_val": float(p1['price']),
+                    "p_end_idx": int(p3['idx']),
+                    "p_end_val": float(p3['price']),
+                    "f_end_idx": int(len(close)-1),
+                    "head_idx": int(p2['idx']),
+                    "head_val": float(p2['price']),
+                    "neck_slope": 0.0,
+                    "neck_intercept": float(p2['price']),
+                    "res_start": float(p2['price']),
+                    "res_end": float(p2['price']),
+                    "sup_start": float(min(p1['price'], p3['price'])),
+                    "sup_end": float(min(p1['price'], p3['price']))
+                },
+                "Formasyon": "Double Bottom",
+                "Symbol": "N/A"
+            })
+            break
+            
+        return patterns
+
+    def detect_double_top_pattern(self, df, zz_points, timeframe="Günlük"):
+        patterns = []
+        if len(zz_points) < 3: return patterns
+        cfg = self.config
+        close = df['Close'].values
+        dates = df['Date'].values
+        curr_idx = len(close) - 1
+        
+        for i in range(len(zz_points)-1, 1, -1):
+            p3, p2, p1 = zz_points[i], zz_points[i-1], zz_points[i-2]
+            if not (p3['type'] == 'high' and p2['type'] == 'low' and p1['type'] == 'high'):
+                continue
+                
+            if curr_idx - p3['idx'] > 10: continue
+            
+            p_diff = abs(p1['price'] - p3['price']) / max(p1['price'], p3['price'])
+            if p_diff > 0.03: continue
+            
+            if p2['price'] > min(p1['price'], p3['price']) * 0.98: continue
+            
+            depth = max(p1['price'], p3['price']) - p2['price']
+            curr_price = close[-1]
+            status = "unconfirmed"
+            if curr_price < p2['price']:
+                status = "confirmed"
+                
+            entry = p2['price']
+            target = p2['price'] - depth
+            stop = max(p1['price'], p3['price'])
+            
+            quality_text = "Good"
+            quality_score = 75
+            strategy = self.get_strategy_text(status, curr_price, entry, target, stop, "Double Top")
+            vade = self.calculate_smart_vade(p3['idx'] - p1['idx'], 60, timeframe)
+            
+            patterns.append({
+                'name': 'Double Top',
+                'price': float(curr_price),
+                'entry': float(entry),
+                'target': float(target),
+                'stop': float(stop),
+                'status': status,
+                'quality': quality_text,
+                'strategy': strategy,
+                'type': 'double_top',
+                'score': quality_score,
+                'date_range': f"{pd.to_datetime(dates[p1['idx']]).strftime('%d.%m')}-{pd.to_datetime(dates[p3['idx']]).strftime('%d.%m')}",
+                'vade': vade,
+                "Points": {
+                    "p_start_idx": int(p1['idx']),
+                    "p_start_val": float(p1['price']),
+                    "p_end_idx": int(p3['idx']),
+                    "p_end_val": float(p3['price']),
+                    "f_end_idx": int(len(close)-1),
+                    "head_idx": int(p2['idx']),
+                    "head_val": float(p2['price']),
+                    "neck_slope": 0.0,
+                    "neck_intercept": float(p2['price']),
+                    "res_start": float(p2['price']),
+                    "res_end": float(p2['price']),
+                    "sup_start": float(p2['price']),
+                    "sup_end": float(p2['price'])
+                },
+                "Formasyon": "Double Top",
+                "Symbol": "N/A"
+            })
+            break
+            
+        return patterns
+
     def detect_cup_zigzag(self, df, zz_points, timeframe="Günlük"):
         """Detects Cup and Handle using Elite standards (Rounded Bottom, Handle Slope)."""
         patterns = []
@@ -986,17 +1134,17 @@ class Analyzer:
             target = breakout_level + cup_depth
             stop = p3['price']
             
-            q_text = "Normal"
-            if quality_score > 80: q_text = "Yıldızlı ⭐"
-            elif quality_score > 70: q_text = "Güçlü"
+            q_text = "Moderate"
+            if quality_score > 80: q_text = "Elite ⭐"
+            elif quality_score > 70: q_text = "Strong"
 
-            strategy = self.get_strategy_text(status, curr_price, breakout_level, target, stop, "Fincan Kulp")
+            strategy = self.get_strategy_text(status, curr_price, breakout_level, target, stop, "Cup and Handle")
             
             # Vade
             vade = self.calculate_smart_vade(int(idx_len*0.4), int(idx_len*0.8), timeframe)
 
             patterns.append({
-                'name': f'Fincan Kulp ({status.upper()})',
+                'name': f'Cup and Handle ({status.upper()})',
                 'signal': 'Bullish',
                 'desc': f"Derinlik: %{pct_depth*100:.1f}. Kulp: %{(handle_depth/cup_depth)*100:.0f} Retracement. {vol_reason}",
                 'points': [p1['idx'], p2['idx'], p3['idx']],
@@ -1629,6 +1777,14 @@ class Analyzer:
             if self.config['enabled_patterns'].get('cup', True):
                 cup_pats = self.detect_cup_zigzag(df, zz_points, timeframe)
                 patterns.extend(cup_pats)
+
+            # 3.1 Double Bottom & Double Top
+            if self.config['enabled_patterns'].get('double_bottom', True):
+                db_pats = self.detect_double_bottom_pattern(df, zz_points, timeframe)
+                patterns.extend(db_pats)
+            if self.config['enabled_patterns'].get('double_top', True):
+                dt_pats = self.detect_double_top_pattern(df, zz_points, timeframe)
+                patterns.extend(dt_pats)
                 
             # 4. Flag / Pennant (Combined Detection, then Filter)
             enable_flag = self.config['enabled_patterns'].get('flag', True)

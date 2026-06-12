@@ -309,14 +309,25 @@ def build_docx():
             doc.add_paragraph()
             
     print(f"Saving compiled MS Word document to: {docx_path}")
+    success = False
     try:
         doc.save(docx_path)
         print("MS Word document successfully generated!")
+        success = True
     except PermissionError:
-        alt_docx_path = docx_path.replace(".docx", "_v2.docx")
-        print(f"Permission denied on {docx_path}. Saving to alternative path: {alt_docx_path}")
-        doc.save(alt_docx_path)
-        print("Alternative MS Word document successfully generated!")
+        print(f"Permission denied on {docx_path}.")
+        
+    if not success:
+        i = 2
+        while True:
+            alt_docx_path = docx_path.replace(".docx", f"_v{i}.docx")
+            try:
+                doc.save(alt_docx_path)
+                print(f"Alternative MS Word document successfully generated at: {alt_docx_path}")
+                break
+            except PermissionError:
+                print(f"Permission denied on {alt_docx_path}.")
+                i += 1
 
 if __name__ == "__main__":
     build_docx()

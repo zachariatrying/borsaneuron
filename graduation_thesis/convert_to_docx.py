@@ -95,6 +95,7 @@ def build_docx():
     in_table = False
     in_code_block = False
     is_first_h1 = True
+    last_was_blank = False
     table_lines = []
     
     for index, line in enumerate(lines):
@@ -107,27 +108,34 @@ def build_docx():
             continue
             
         if is_cover_page:
-            if not clean_line:
-                doc.add_paragraph()
+            is_br = re.match(r'^<br\s*/?>+$', clean_line.replace(" ", "").lower()) is not None
+            if not clean_line or is_br:
+                if not last_was_blank:
+                    doc.add_paragraph()
+                    last_was_blank = True
                 continue
             
+            last_was_blank = False
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             
-            if clean_line.startswith("# "):
-                run = p.add_run(clean_line[2:])
+            # Remove HTML line breaks from headings/text if any
+            display_text = re.sub(r'<br\s*/?>', '', clean_line, flags=re.IGNORECASE).strip()
+            
+            if display_text.startswith("# "):
+                run = p.add_run(display_text[2:])
                 run.bold = True
                 run.font.size = Pt(20)
-            elif clean_line.startswith("## "):
-                run = p.add_run(clean_line[3:])
+            elif display_text.startswith("## "):
+                run = p.add_run(display_text[3:])
                 run.bold = True
                 run.font.size = Pt(16)
-            elif clean_line.startswith("### "):
-                run = p.add_run(clean_line[4:])
+            elif display_text.startswith("### "):
+                run = p.add_run(display_text[4:])
                 run.bold = True
                 run.font.size = Pt(14)
             else:
-                run = p.add_run(clean_line)
+                run = p.add_run(display_text)
                 run.font.size = Pt(12)
                 
             run.font.name = 'Times New Roman'
@@ -305,9 +313,7 @@ def build_docx():
                 if run.font.name != 'Courier New':
                     run.font.name = 'Times New Roman'
                     run.font.size = Pt(12)
-        else:
-            doc.add_paragraph()
-            
+
     print(f"Saving compiled MS Word document to: {docx_path}")
     success = False
     try:

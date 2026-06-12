@@ -31,9 +31,15 @@ pdf_path = os.path.join(thesis_dir, "BorsaNeuron_Graduation_Thesis.pdf")
 with open(md_path, "r", encoding="utf-8") as f:
     text = f.read()
 
-# Convert markdown tables and code blocks correctly
-# xhtml2pdf needs clean HTML. Let's use markdown extensions like 'tables' and 'fenced_code'
-html_body = markdown.markdown(text, extensions=['tables', 'fenced_code'])
+# Split cover page from body
+parts = text.split("\n---", 1)
+if len(parts) == 2:
+    cover_md, body_md = parts[0], parts[1]
+    cover_html = markdown.markdown(cover_md, extensions=['tables', 'fenced_code'])
+    body_html = markdown.markdown(body_md, extensions=['tables', 'fenced_code'])
+    html_body = f'<div class="cover-page">{cover_html}</div><div class="page-break"></div>{body_html}'
+else:
+    html_body = markdown.markdown(text, extensions=['tables', 'fenced_code'])
 
 # Let's adjust image source paths in HTML. In markdown, we have ![alt](images/filename.png).
 # xhtml2pdf needs absolute paths to find images on Windows!
@@ -121,6 +127,20 @@ img {
 }
 .cover-page {
     text-align: center;
+}
+.cover-page h1 {
+    page-break-before: avoid !important;
+    font-size: 20pt;
+    margin-top: 1.5cm;
+    margin-bottom: 0.8cm;
+}
+.cover-page h2 {
+    font-size: 16pt;
+    margin-top: 1cm;
+}
+.cover-page h3 {
+    font-size: 12pt;
+    margin-top: 0.5cm;
 }
 .page-break {
     page-break-after: always;

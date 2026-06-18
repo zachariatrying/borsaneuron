@@ -1,150 +1,268 @@
+"""
+Capture UI screenshots - one Streamlit instance per heavy page.
+Kills and restarts the server between heavy pages to avoid blocking.
+"""
 import os
 import sys
 import time
 import subprocess
+import signal
 from playwright.sync_api import sync_playwright
 
+WORKSPACE = r"C:\Users\ibrah\.gemini\antigravity\scratch\ipo_analyzer"
+OUT_DIR = os.path.join(WORKSPACE, "sunum_gorselleri")
+THESIS_DIR = os.path.join(WORKSPACE, "graduation_thesis", "images")
+BASE_URL = "http://localhost:8501"
+
+def save(page, name):
+    for d in [OUT_DIR, THESIS_DIR]:
+        page.screenshot(path=os.path.join(d, name))
+    print(f"    [SAVED] {name}")
+
+def save_full(page, name):
+    for d in [OUT_DIR, THESIS_DIR]:
+        page.screenshot(path=os.path.join(d, name), full_page=True)
+    print(f"    [SAVED full] {name}")
+
+def start_streamlit():
+    print("  Starting Streamlit server...")
+    cmd = [sys.executable, "-m", "streamlit", "run", "src/app.py", 
+           "--server.port=8501", "--server.headless=true"]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                            text=True, encoding='utf-8')
+    print("  Waiting 25s for server to load...")
+    time.sleep(25)
+    return proc
+
+def kill_streamlit(proc):
+    print("  Killing Streamlit server...")
+    proc.terminate()
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+    # Also kill any orphan streamlit processes
+    os.system("taskkill /F /IM streamlit.exe 2>nul")
+    time.sleep(3)
+    print("  Server killed.")
+
+def capture_static_pages(browser):
+    """Capture all pages that don't need button clicks in one go."""
+    context = browser.new_context(viewport={"width": 1920, "height": 1080})
+    pg = context.new_page()
+    
+    pg.goto(BASE_URL, timeout=60000)
+    pg.wait_for_selector(".stApp", timeout=30000)
+    time.sleep(5)
+    
+    # Welcome
+    print("\n  === Welcome ===")
+    save(pg, "03_veri_kesfi.png")
+    
+    # EDA
+    print("\n  === EDA ===")
+    pg.get_by_text("Exploratory Data Analysis (EDA)", exact=True).click()
+    time.sleep(8)
+    save(pg, "borsaneuron_ui_dashboard.png")
+    
+    # Correlation
+    print("\n  === Feature Correlation ===")
+    pg.get_by_text("Feature Correlation & Selection", exact=True).click()
+    time.sleep(8)
+    pg.evaluate("window.scrollBy(0, 400)")
+    time.sleep(2)
+    save(pg, "04_korelasyon_heatmap.png")
+    
+    # Clustering
+    print("\n  === Market Regime Clustering ===")
+    pg.get_by_text("Market Regime Clustering", exact=True).click()
+    time.sleep(8)
+    pg.evaluate("window.scrollBy(0, 400)")
+    time.sleep(2)
+    save(pg, "05_kmeans_pca.png")
+    
+    pg.close()
+    context.close()
+
+def capture_heavy_page(browser, page_label, button_text, max_wait, 
+                       scroll_px, screenshot_name, full_name=None):
+    """Capture a single heavy-computation page."""
+    context = browser.new_context(viewport={"width": 1920, "height": 1080})
+    pg = context.new_page()
+    
+    pg.goto(BASE_URL, timeout=60000)
+    pg.wait_for_selector(".stApp", timeout=30000)
+    time.sleep(5)
+    
+    # Navigate
+    pg.get_by_text(page_label, exact=True).click()
+    time.sleep(8)
+    
+    # Click button
+    print(f"    Looking for button: '{button_text}'...")
+    btn = pg.get_by_role("button", name=button_text)
+    if btn.count() > 0:
+        btn.first.scroll_into_view_if_needed()
+        time.sleep(1)
+        btn.first.click()
+        print(f"    Clicked. Waiting up to {max_wait}s for completion...")
+        
+        time.sleep(3)
+        start = time.time()
+        while time.time() - start < max_wait:
+            stop_btn = pg.get_by_role("button", name="Stop")
+            if stop_btn.count() == 0:
+                elapsed = time.time() - start
+                print(f"    DONE after {elapsed:.1f}s")
+                break
+            time.sleep(3)
+        else:
+            print(f"    WARNING: Still running after {max_wait}s!")
+        
+        time.sleep(5)
+    else:
+        all_btns = pg.locator("button").all_text_contents()
+        print(f"    WARNING: Button NOT FOUND! Available: {all_btns}")
+    
+    if scroll_px > 0:
+        pg.evaluate(f"window.scrollBy(0, {scroll_px})")
+        time.sleep(2)
+    
+    save(pg, screenshot_name)
+    
+    if full_name:
+        pg.evaluate("window.scrollTo(0, 0)")
+        time.sleep(1)
+        save_full(pg, full_name)
+    
+    pg.close()
+    context.close()
+
 def main():
-    workspace_dir = r"C:\Users\ibrah\.gemini\antigravity\scratch\ipo_analyzer"
-    os.chdir(workspace_dir)
+    os.chdir(WORKSPACE)
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
+    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(THESIS_DIR, exist_ok=True)
     
-    out_dir = os.path.join(workspace_dir, "sunum_gorselleri")
-    os.makedirs(out_dir, exist_ok=True)
-    
-    # 1. Start Streamlit server in the background
-    print("Starting Streamlit server on port 8501...")
-    cmd = [sys.executable, "-m", "streamlit", "run", "src/app.py", "--server.port=8501", "--server.headless=true"]
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
-    
-    # Wait for the server to start
-    print("Waiting 10 seconds for Streamlit to start...")
-    time.sleep(10)
-    
-    # 2. Run Playwright to capture screenshots of each page
-    print("Launching Playwright...")
+    # ========== PHASE 1: Static pages ==========
+    print("\n" + "="*70)
+    print(" PHASE 1: Static pages (one server, all pages)")
+    print("="*70)
+    proc = start_streamlit()
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            context = browser.new_context(viewport={"width": 1920, "height": 1080})
-            page = context.new_page()
-            
-            print("Navigating to Streamlit app at http://localhost:8501...")
-            page.goto("http://localhost:8501", timeout=30000)
-            
-            # Wait for content to load
-            page.wait_for_selector(".stApp", timeout=15000)
-            print("App loaded successfully!")
-            time.sleep(3)
-            
-            # --- PAGE 1: Welcome page (System Overview & Documentation) ---
-            print("Capturing Welcome page...")
-            path_welcome = os.path.join(out_dir, "03_veri_kesfi.png")
-            page.screenshot(path=path_welcome)
-            print(f"Saved Welcome screenshot to: {path_welcome}")
-            
-            # Helper selector to click sidebar radio options robustly
-            def navigate_to(page_text):
-                print(f"Navigating to sidebar page: {page_text}...")
-                selector = f"text={page_text}"
-                page.click(selector)
-                time.sleep(3) # Wait for page state to change and render
-            
-            # --- PAGE 2: Exploratory Data Analysis (EDA) ---
-            navigate_to("Exploratory Data Analysis (EDA)")
-            path1 = os.path.join(out_dir, "borsaneuron_ui_dashboard.png")
-            page.screenshot(path=path1)
-            print(f"Saved EDA page screenshot to: {path1}")
-            
-            # --- PAGE 3: Feature Correlation & Selection ---
-            navigate_to("Feature Correlation & Selection")
-            path2 = os.path.join(out_dir, "04_korelasyon_heatmap.png")
-            page.screenshot(path=path2)
-            print(f"Saved Correlation page screenshot to: {path2}")
-            
-            # --- PAGE 4: Market Regime Clustering ---
-            navigate_to("Market Regime Clustering")
-            path3 = os.path.join(out_dir, "05_kmeans_pca.png")
-            page.screenshot(path=path3)
-            print(f"Saved Market Regimes page screenshot to: {path3}")
-            
-            # --- PAGE 5: Machine Learning Model Analysis ---
-            navigate_to("Machine Learning Model Analysis")
-            train_btn = page.locator("button:has-text('Start Model Training Matrix')")
-            if train_btn.count() > 0:
-                print("Clicking 'Start Model Training Matrix' button...")
-                train_btn.click()
-                print("Waiting for model training to complete (15s)...")
-                time.sleep(15)
-            path4 = os.path.join(out_dir, "model_4_karsilastirma.png")
-            page.screenshot(path=path4)
-            print(f"Saved Model Comparison page screenshot to: {path4}")
-            
-            # --- PAGE 6: Time-Series Trend Forecasting ---
-            navigate_to("Time-Series Trend Forecasting")
-            tahmin_btn = page.locator("button:has-text('Run Forecast Matrix')")
-            if tahmin_btn.count() > 0:
-                print("Clicking 'Run Forecast Matrix' button...")
-                tahmin_btn.click()
-                print("Waiting for Prophet modeling (10s)...")
-                time.sleep(10)
-            path5 = os.path.join(out_dir, "prophet_forecast_real.png")
-            page.screenshot(path=path5)
-            print(f"Saved Prophet page screenshot to: {path5}")
-            
-            # --- PAGE 7: Live Stock Query & Inference ---
-            navigate_to("Live Stock Query & Inference")
-            analiz_btn = page.locator("button:has-text('Analyze Stock')")
-            if analiz_btn.count() > 0:
-                print("Clicking 'Analyze Stock' button...")
-                analiz_btn.click()
-                print("Waiting for live data fetch & inference (6s)...")
-                time.sleep(6)
-            path7 = os.path.join(out_dir, "borsaneuron_hisse_sorgu_real.png")
-            page.screenshot(path=path7)
-            print(f"Saved Live Stock Query page screenshot to: {path7}")
-            
-            # --- PAGE 8: Portfolio Backtesting & Simulation ---
-            navigate_to("Portfolio Backtesting & Simulation")
-            backtest_btn = page.locator("button:has-text('Run Out-of-Sample Backtest')")
-            if backtest_btn.count() > 0:
-                print("Clicking 'Run Out-of-Sample Backtest' button...")
-                backtest_btn.click()
-                print("Waiting for Backtest run (10s)...")
-                time.sleep(10)
-            path6 = os.path.join(out_dir, "borsaneuron_scenario_ui.png")
-            page.screenshot(path=path6)
-            print(f"Saved Backtest page screenshot to: {path6}")
-            
-            # --- PAGE 9: Automated Pattern Scanner ---
-            navigate_to("Automated Pattern Scanner")
-            scan_btn = page.locator("button:has-text('Start Live Scan')")
-            if scan_btn.count() > 0:
-                print("Clicking 'Start Live Scan' button...")
-                scan_btn.click()
-                print("Waiting for Live Scan (10s)...")
-                time.sleep(10)
-            path8 = os.path.join(out_dir, "senaryo_kume_profil.png") # Override target placeholder or new one
-            page.screenshot(path=path8)
-            print(f"Saved Pattern Scanner page screenshot to: {path8}")
-            
+            capture_static_pages(browser)
             browser.close()
-            print("[SUCCESS] All corporate layout screenshots taken successfully!")
-            
     except Exception as e:
-        print(f"[ERROR] Playwright execution failed: {e}")
-    finally:
-        # Terminate Streamlit server
-        print("Terminating Streamlit server process...")
-        process.terminate()
-        try:
-            process.wait(timeout=5)
-            print("Streamlit process terminated.")
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait()
-            print("Streamlit process killed.")
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    # ========== PHASE 2: ML Model Analysis ==========
+    print("\n" + "="*70)
+    print(" PHASE 2: Machine Learning Model Analysis")
+    print("="*70)
+    proc = start_streamlit()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            capture_heavy_page(browser,
+                page_label="Machine Learning Model Analysis",
+                button_text="Start Model Training Matrix",
+                max_wait=600,  # 10 minutes!
+                scroll_px=800,
+                screenshot_name="model_4_karsilastirma.png",
+                full_name="model_4_karsilastirma_full.png")
+            browser.close()
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    # ========== PHASE 3: Prophet ==========
+    print("\n" + "="*70)
+    print(" PHASE 3: Time-Series Trend Forecasting")
+    print("="*70)
+    proc = start_streamlit()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            capture_heavy_page(browser,
+                page_label="Time-Series Trend Forecasting",
+                button_text="Run Forecast Matrix",
+                max_wait=180,
+                scroll_px=500,
+                screenshot_name="prophet_forecast_real.png",
+                full_name="prophet_forecast_real_full.png")
+            browser.close()
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    # ========== PHASE 4: Live Stock Query ==========
+    print("\n" + "="*70)
+    print(" PHASE 4: Live Stock Query & Inference")
+    print("="*70)
+    proc = start_streamlit()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            capture_heavy_page(browser,
+                page_label="Live Stock Query & Inference",
+                button_text="Analyze Stock",
+                max_wait=300,
+                scroll_px=800,
+                screenshot_name="borsaneuron_hisse_sorgu_real.png",
+                full_name="borsaneuron_hisse_sorgu_real_full.png")
+            browser.close()
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    # ========== PHASE 5: Backtesting ==========
+    print("\n" + "="*70)
+    print(" PHASE 5: Portfolio Backtesting & Simulation")
+    print("="*70)
+    proc = start_streamlit()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            capture_heavy_page(browser,
+                page_label="Portfolio Backtesting & Simulation",
+                button_text="Run Out-of-Sample Backtest",
+                max_wait=300,
+                scroll_px=800,
+                screenshot_name="borsaneuron_scenario_ui.png",
+                full_name="borsaneuron_scenario_ui_full.png")
+            browser.close()
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    # ========== PHASE 6: Pattern Scanner ==========
+    print("\n" + "="*70)
+    print(" PHASE 6: Automated Pattern Scanner")
+    print("="*70)
+    proc = start_streamlit()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            capture_heavy_page(browser,
+                page_label="Automated Pattern Scanner",
+                button_text="Start Live Scan",
+                max_wait=300,
+                scroll_px=600,
+                screenshot_name="senaryo_kume_profil.png",
+                full_name="senaryo_kume_profil_full.png")
+            browser.close()
+    except Exception as e:
+        print(f"  ERROR: {e}")
+    kill_streamlit(proc)
+    
+    print("\n" + "="*70)
+    print(" ALL PHASES COMPLETE!")
+    print("="*70)
 
 if __name__ == "__main__":
     main()

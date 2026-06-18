@@ -402,8 +402,11 @@ elif page == "Machine Learning Model Analysis":
     
     if st.button("Start Model Training Matrix", key="train_btn", type="primary"):
         with st.spinner("Executing cross-validated model training pipeline..."):
-            X = df_ml[features]
-            y = df_ml['Target_T5']
+            df_train_sample = df_ml
+            if len(df_train_sample) > 10000:
+                df_train_sample = df_train_sample.sample(n=10000, random_state=42)
+            X = df_train_sample[features]
+            y = df_train_sample['Target_T5']
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             
             scaler = StandardScaler()
@@ -688,24 +691,40 @@ elif page == "Live Stock Query & Inference":
             features_q = ['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Volume_Trend', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']
             model_loaded = False
             try:
-                best_model = joblib.load("best_model_acm465.joblib")
-                best_scaler = joblib.load("best_scaler_acm465.joblib")
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                best_model = joblib.load(os.path.join(base_dir, "best_model_acm465.joblib"))
+                best_scaler = joblib.load(os.path.join(base_dir, "best_scaler_acm465.joblib"))
+                best_features = joblib.load(os.path.join(base_dir, "best_features_acm465.joblib"))
                 model_loaded = True
-            except:
+            except Exception as e:
                 pass
             
-            if not model_loaded:
+            if model_loaded:
+                # Add pattern columns to processed_live_data if they are not present
+                for col in best_features:
+                    if col not in processed_live_data.columns:
+                        if col == 'Pat_Yok':
+                            processed_live_data[col] = 1
+                        else:
+                            processed_live_data[col] = 0
+                
+                # Re-extract the last row to include the added features
+                son_row = processed_live_data.dropna(subset=['RSI_14', 'MACD', 'ATR_14', 'Stoch_K', 'Depth_Ratio', 'Neckline_Slope', 'Expert_Signal']).tail(1).iloc[0]
+                features_to_use = best_features
+                rf_model = best_model
+                scaler_q = best_scaler
+            else:
+                features_to_use = features_q
                 df_train = df.dropna(subset=features_q + ['Target_T5']).copy()
+                if len(df_train) > 10000:
+                    df_train = df_train.sample(n=10000, random_state=42)
                 scaler_q = StandardScaler()
                 X_all = scaler_q.fit_transform(df_train[features_q])
                 y_all = df_train['Target_T5']
                 rf_model = RandomForestClassifier(n_estimators=150, random_state=42, n_jobs=-1)
                 rf_model.fit(X_all, y_all)
-            else:
-                rf_model = best_model
-                scaler_q = best_scaler
             
-            son_features = son_row[features_q].values.reshape(1, -1)
+            son_features = son_row[features_to_use].values.reshape(1, -1)
             son_scaled = scaler_q.transform(son_features)
             
             tahmin = rf_model.predict(son_scaled)[0]
@@ -713,7 +732,7 @@ elif page == "Live Stock Query & Inference":
             guven = max(proba) * 100
             
             backtest_df = processed_live_data.copy()
-            bt_features = scaler_q.transform(backtest_df[features_q].values)
+            bt_features = scaler_q.transform(backtest_df[features_to_use].values)
             backtest_df['AI_Signal'] = rf_model.predict(bt_features)
             
             backtest_df['Target_T5_True'] = (backtest_df['Close'].shift(-5) > backtest_df['Close']).astype(int)
@@ -735,7 +754,7 @@ elif page == "Live Stock Query & Inference":
             
             st.markdown("#### Live Price Series & AI Buy Signals")
             grafik_df = processed_live_data.tail(90).copy()
-            all_features_matrix = scaler_q.transform(grafik_df[features_q].values)
+            all_features_matrix = scaler_q.transform(grafik_df[features_to_use].values)
             grafik_df['AI_Signal'] = rf_model.predict(all_features_matrix)
             
             fig_candle = go.Figure()
@@ -894,11 +913,15 @@ elif page == "Portfolio Backtesting & Simulation":
             train_df = df_bt.iloc[:split_idx]
             test_df = df_bt.iloc[split_idx:].copy()
             
+            # Sample train_df to 10k rows to speed up training
+            if len(train_df) > 10000:
+                train_df = train_df.sample(n=10000, random_state=42)
+                
             scaler = StandardScaler()
             X_tr_s = scaler.fit_transform(train_df[features_bt])
             X_te_s = scaler.transform(test_df[features_bt])
             
-            rf_bt = RandomForestClassifier(n_estimators=50, random_state=42)
+            rf_bt = RandomForestClassifier(n_estimators=50, random_state=42, n_jobs=-1)
             rf_bt.fit(X_tr_s, train_df['Target_T5'])
             test_df['AI_Signal'] = rf_bt.predict(X_te_s)
             
